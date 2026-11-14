@@ -58,7 +58,14 @@ abstract class AbstractProtocol
     public function __construct($user, $servers, $clientName = null, $clientVersion = null, $userAgent = null)
     {
         $this->user = $user;
-        $this->servers = $servers;
+        $this->servers = array_map(function ($server) {
+            if (($server['type'] ?? '') === 'mixed') { $server['type'] = 'http'; }
+            return $server;
+        }, array_values(array_filter($servers, function ($server) {
+            // Extended Xray transports require a complete, dedicated configuration.
+            return ($server['type'] ?? '') !== 'masque'
+                && data_get($server, 'protocol_settings.network') !== 'xdrive';
+        })));
         $this->clientName = $clientName;
         $this->clientVersion = $clientVersion;
         $this->userAgent = $userAgent;

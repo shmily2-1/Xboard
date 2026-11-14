@@ -1,0 +1,25 @@
+name: Native V2bX Adaptation
+on:
+  push:
+    branches: [master]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check native frontend build provenance
+        run: python3 scripts/check-native-build.py
+      - name: Check JavaScript syntax in the original modules
+        run: |
+          node --input-type=module --check < public/assets/admin/assets/index-v2bx-native.js
+          node --input-type=module --check < theme/Xboard/assets/umi-native.js
+      - name: Check PHP source syntax
+        run: |
+          find app routes database/migrations -name '*.php' -print0 | xargs -0 -n 1 php -l > /tmp/php-lint.log
+          tail -n 3 /tmp/php-lint.log
+      - name: Check agent syntax
+        run: python3 -m py_compile scripts/v2bx-service-agent.py

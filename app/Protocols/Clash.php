@@ -297,13 +297,14 @@ class Clash extends AbstractProtocol
         $array['server'] = $server['host'];
         $array['port'] = $server['port'];
 
-        $array['username'] = $password;
+        $array['username'] = $server['username'] ?? $password;
         $array['password'] = $password;
 
         // TLS 配置
         if (data_get($protocol_settings, 'tls')) {
             $array['tls'] = true;
             $array['skip-cert-verify'] = (bool) data_get($protocol_settings, 'tls_settings.allow_insecure', false);
+            if ($name = data_get($protocol_settings, 'tls_settings.server_name')) { $array['sni'] = $name; }
         }
 
         return $array;

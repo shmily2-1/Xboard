@@ -24,7 +24,7 @@ class RequestLog
             }
 
             $action = $this->resolveAction($request->path());
-            $data = collect($request->all())->except(self::SENSITIVE_KEYS)->toArray();
+            $data = $this->redact($request->all());
 
             AdminAuditLog::insert([
                 'admin_id' => $admin->id,
@@ -41,6 +41,18 @@ class RequestLog
         }
 
         return $response;
+    }
+
+    private function redact(array $data): array
+    {
+        foreach ($data as $key => $value) {
+            if (preg_match('/password|token|secret|private.?key|preshared|decryption|secrets|api.?key/i', (string) $key)) {
+                $data[$key] = '[REDACTED]';
+            } elseif (is_array($value)) {
+                $data[$key] = $this->redact($value);
+            }
+        }
+        return $data;
     }
 
     private function resolveAction(string $path): string

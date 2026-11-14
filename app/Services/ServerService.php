@@ -75,6 +75,7 @@ class ServerService
                 $server->port = (int) $server->port;
             }
             $server->password = $server->generateServerPassword($user);
+            $server->username = $user->uuid;
             $server->rate = $server->getCurrentRate();
             return $server;
         })->toArray();
@@ -108,6 +109,7 @@ class ServerService
                 'device_limit'
             ])
             ->get();
+        $users = $users->map(fn($user) => (object) \App\Services\V2bX\Credentials::serialize($user, $node));
         return HookManager::filter('server.users.get', $users, $node);
     }
 
@@ -250,6 +252,9 @@ class ServerService
 
     public static function buildNodeConfig(Server $node): array
     {
+        if ($node->backend_profile === 'v2bx-extended') {
+            return \App\Services\V2bX\NodeConfig::build($node);
+        }
         $nodeType = $node->type;
         $protocolSettings = $node->protocol_settings;
         $serverPort = $node->server_port;

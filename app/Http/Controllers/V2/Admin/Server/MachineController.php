@@ -51,6 +51,10 @@ class MachineController extends Controller
 
         if (!empty($params['id'])) {
             $machine = ServerMachine::find($params['id']);
+            if (array_key_exists('is_active', $params) && !$params['is_active']
+                && \App\Models\ManagedService::where('machine_id', $machine->id)->whereNotIn('state', ['disabled', 'removed'])->exists()) {
+                return $this->fail([422, '请先停用机器上的扩展服务并等待节点确认']);
+            }
             $update = ['name' => $params['name']];
             if (array_key_exists('notes', $params)) {
                 $update['notes'] = $params['notes'];
@@ -113,9 +117,22 @@ class MachineController extends Controller
     {
         $params = $request->validate([
             'id' => 'required|integer|exists:v2_server_machine,id',
+            'backend' => 'sometimes|in:xboard-node,v2bx',
         ]);
 
         $machine = ServerMachine::find($params['id']);
+
+        if (($params['backend'] ?? '') === 'v2bx') {
+            return $this->success([
+                'command' => 'wget -N https://raw.githubusercontent.com/shmily2-1/V2bX-2/v0.1.0-core-upgrade.18/install.sh && bash install.sh --non-interactive',
+                'agent_config' => [
+                    'panel' => $request->getSchemeAndHttpHost(), 'machine_id' => $machine->id, 'token' => $machine->token,
+                    'state_dir' => '/var/lib/V2bX/xboard-agent', 'v2bx' => '/usr/local/V2bX/V2bX',
+                    'v2bx_config' => '/etc/V2bX/config.json', 'interval' => 10,
+                    'backend_profiles' => (object) [], 'metrics_ports' => (object) [],
+                ],
+            ]);
+        }
 
         return $this->success([
             'command' => $this->buildInstallCommand($request, $machine),
@@ -133,6 +150,9 @@ class MachineController extends Controller
 
         $machine = ServerMachine::find($params['id']);
         $machineId = $machine->id;
+        if (\App\Models\ManagedService::where('machine_id', $machineId)->where('state', '!=', 'removed')->exists()) {
+            return $this->fail([422, '请先移除机器上的扩展服务并等待节点确认']);
+        }
 
         // Detach nodes first (sets machine_id = null), then delete and notify
         Server::where('machine_id', $machineId)->update(['machine_id' => null]);

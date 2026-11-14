@@ -811,13 +811,14 @@ class SingBox extends AbstractProtocol
 
     protected function buildHttp($password, $server): array
     {
+        $password = $server['password'] ?? $password;
         $protocol_settings = data_get($server, 'protocol_settings', []);
         $array = [
             'type' => 'http',
             'tag' => $server['name'],
             'server' => $server['host'],
             'server_port' => $server['port'],
-            'username' => $password,
+            'username' => $server['username'] ?? $password,
             'password' => $password,
         ];
 

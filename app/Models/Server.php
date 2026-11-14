@@ -69,6 +69,8 @@ class Server extends Model
     public const TYPE_SOCKS = 'socks';
     public const TYPE_NAIVE = 'naive';
     public const TYPE_HTTP = 'http';
+    public const TYPE_MIXED = 'mixed';
+    public const TYPE_MASQUE = 'masque';
     public const TYPE_MIERU = 'mieru';
     public const STATUS_OFFLINE = 0;
     public const STATUS_ONLINE_NO_PUSH = 1;
@@ -107,6 +109,8 @@ class Server extends Model
         self::TYPE_SOCKS,
         self::TYPE_NAIVE,
         self::TYPE_HTTP,
+        self::TYPE_MIXED,
+        self::TYPE_MASQUE,
         self::TYPE_MIERU,
     ];
 
@@ -245,6 +249,11 @@ class Server extends Model
                     'enabled' => ['type' => 'boolean', 'default' => false],
                     'encryption' => ['type' => 'string', 'default' => null],  // 客户端公钥
                     'decryption' => ['type' => 'string', 'default' => null],   // 服务端私钥
+                    'method' => ['type' => 'string', 'default' => 'mlkem768x25519plus'],
+                    'mode' => ['type' => 'string', 'default' => 'native'],
+                    'ticket' => ['type' => 'string', 'default' => '600s'],
+                    'server_padding' => ['type' => 'string', 'default' => ''],
+                    'private_key' => ['type' => 'string', 'default' => null],
                 ]
             ],
             'network' => ['type' => 'string', 'default' => null],
@@ -316,6 +325,18 @@ class Server extends Model
             'tls' => ['type' => 'integer', 'default' => 0],
             'tls_settings' => self::TLS_SETTINGS_CONFIGURATION
         ],
+        self::TYPE_MIXED => [
+            'tls' => ['type' => 'integer', 'default' => 0],
+            'tls_settings' => self::TLS_SETTINGS_CONFIGURATION,
+        ],
+        self::TYPE_MASQUE => [
+            'address' => ['type' => 'array', 'default' => []],
+            'mtu' => ['type' => 'integer', 'default' => 1400],
+            'path' => ['type' => 'string', 'default' => '/'],
+            'masque_host' => ['type' => 'string', 'default' => ''],
+            'tls_settings' => self::TLS_SETTINGS_CONFIGURATION,
+            'alpn' => ['type' => 'array', 'default' => ['h3']],
+        ],
         self::TYPE_MIERU => [
             'transport' => ['type' => 'string', 'default' => 'TCP'],
             'traffic_pattern' => ['type' => 'string', 'default' => ''],
@@ -372,6 +393,9 @@ class Server extends Model
 
     public function generateServerPassword(User $user): string
     {
+        if (\App\Services\V2bX\Credentials::required($this)) {
+            return \App\Services\V2bX\Credentials::secret($user->id);
+        }
         if ($this->type !== self::TYPE_SHADOWSOCKS) {
             return $user->uuid;
         }

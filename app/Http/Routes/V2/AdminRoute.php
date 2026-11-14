@@ -94,6 +94,7 @@ class AdminRoute
                 $router->post('/resetTraffic', [ManageController::class, 'resetTraffic']);
                 $router->post('/batchResetTraffic', [ManageController::class, 'batchResetTraffic']);
                 $router->get('/generateEchKey', [ManageController::class, 'generateEchKey']);
+                $router->post('/credentials/rotate', [\App\Http\Controllers\V2\V2bXController::class, 'rotate']);
             });
 
             // 机器管理接口
@@ -108,6 +109,12 @@ class AdminRoute
                 $router->get('/installCommand', [MachineController::class, 'installCommand']);
                 $router->get('/nodes', [MachineController::class, 'nodes']);
                 $router->get('/history', [MachineController::class, 'history']);
+                $router->get('/services', [\App\Http\Controllers\V2\V2bXController::class, 'services']);
+                $router->post('/services/save', [\App\Http\Controllers\V2\V2bXController::class, 'putService']);
+                $router->post('/services/action', [\App\Http\Controllers\V2\V2bXController::class, 'serviceAction']);
+                $router->post('/services/link', [\App\Http\Controllers\V2\V2bXController::class, 'serviceLink']);
+                $router->post('/peers/save', [\App\Http\Controllers\V2\V2bXController::class, 'putPeer']);
+                $router->post('/peers/remove', [\App\Http\Controllers\V2\V2bXController::class, 'removePeer']);
             });
 
             // Order

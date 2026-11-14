@@ -292,13 +292,14 @@ class Surge extends AbstractProtocol
     //参考文档: https://manual.nssurge.com/policy/proxy.html
     public static function buildHttp($password, $server)
     {
+        $username = $server['username'] ?? $password;
         $protocol_settings = data_get($server, 'protocol_settings', []);
         $type = data_get($protocol_settings, 'tls') ? 'https' : 'http';
         $config = [
             "{$server['name']} = {$type}",
             "{$server['host']}",
             "{$server['port']}",
-            "{$password}",
+            "{$username}",
             "{$password}",
         ];
 

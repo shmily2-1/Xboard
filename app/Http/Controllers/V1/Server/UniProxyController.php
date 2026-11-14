@@ -47,6 +47,12 @@ class UniProxyController extends Controller
 
         $node = $this->getNodeInfo($request);
 
+        if ($node->backend_profile === 'v2bx-extended' && $request->header('X-Traffic-Batch')) {
+            $batch = $request->header('X-Traffic-Batch');
+            \App\Services\V2bX\Meter::node($node, $batch, $res);
+            ServerService::touchNode($node);
+            return $this->success(true)->header('X-Traffic-Ack', $batch);
+        }
         ServerService::processTraffic($node, $res);
 
         return $this->success(true);

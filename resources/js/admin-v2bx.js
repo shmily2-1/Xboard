@@ -1,0 +1,233 @@
+/* Compiled into the pinned original admin module by build-admin-native.py.
+ * H, Lf, u8e, htt/ptt and the Select components are the original React/shadcn
+ * bindings. No additional React root, router, login or stylesheet is created.
+ */
+const XBCreate = H.createElement;
+const XBClass = "space-y-2 font-mono text-xs";
+function XBButton(label, onClick, props = {}) {
+  return XBCreate(Lf, {type: "button", variant: "outline", size: "sm", onClick, ...props}, label);
+}
+function XBField({label, value, onChange, type = "text", options, disabled, help}) {
+  const id = H.useId();
+  const control = options ? XBCreate(yzt, {value: String(value ?? ""), onValueChange: onChange, disabled},
+    XBCreate(Czt, {id, className: "font-mono text-xs"}, XBCreate(wzt, {placeholder: "请选择"})),
+    XBCreate(Nzt, null, options.map(([v, text]) => XBCreate(Lzt, {key: v, value: String(v)}, text))))
+    : XBCreate(u8e, {id, type, value: value ?? "", disabled, className: "font-mono text-xs",
+      onChange: e => onChange(type === "number" ? (e.target.value === "" ? "" : Number(e.target.value)) : e.target.value)});
+  return XBCreate("div", {className: XBClass}, XBCreate("label", {htmlFor: id, className: "text-foreground/80"}, label), control,
+    help && XBCreate("p", {className: "text-muted-foreground"}, help));
+}
+function XBCheck({label, checked, onChange}) {
+  const id = H.useId();
+  return XBCreate("div", {className: "flex items-center gap-2 font-mono text-xs"},
+    XBCreate(oZt, {id, checked: !!checked, onCheckedChange: onChange}), XBCreate("label", {htmlFor: id}, label));
+}
+function XBJson({label, value, onChange, onError}) {
+  const [text, setText] = H.useState(JSON.stringify(value ?? {}, null, 2));
+  const [error, setError] = H.useState("");
+  const focused = H.useRef(false);
+  H.useEffect(() => { if (!focused.current) setText(JSON.stringify(value ?? {}, null, 2)); }, [JSON.stringify(value)]);
+  return XBCreate("div", {className: XBClass}, XBCreate("label", null, label),
+    XBCreate("textarea", {value: text, rows: 5, "aria-label": label, spellCheck: false,
+      className: "flex w-full rounded-md border border-input bg-background px-3 py-2 font-mono text-xs",
+      onFocus: () => {focused.current = true;}, onBlur: () => {focused.current = false;},
+      onChange: e => {const next = e.target.value; setText(next); try {
+        const data = JSON.parse(next); if (!data || typeof data !== "object" || Array.isArray(data)) throw Error();
+        setError(""); onError?.(false); onChange(data);
+      } catch {setError("请输入合法的 JSON 对象"); onError?.(true);}}}),
+    error && XBCreate("p", {role: "alert", className: "text-destructive"}, error));
+}
+function XBNodeProtocol({form, serverType, value, onChange}) {
+  const profile = form.watch("backend_profile") || "legacy";
+  const settings = value || {};
+  const required = ["mixed", "masque"].includes(serverType);
+  H.useEffect(() => {if (required && profile !== "v2bx-extended") form.setValue("backend_profile", "v2bx-extended");}, [serverType, profile]);
+  const field = (label, key, extra = {}) => XBCreate(XBField, {key, label, value: settings[key], onChange: v => onChange({...settings, [key]: v}), ...extra});
+  const badJson = key => invalid => invalid ? form.setError(key, {type: "validate", message: "JSON 无效"}) : form.clearErrors(key);
+  const extended = profile === "v2bx-extended" || required;
+  const children = [];
+  if (["http", "mixed", "masque", "vless"].includes(serverType)) children.push(XBCreate(XBField, {key: "backend", label: "节点后端",
+    value: required ? "v2bx-extended" : profile, disabled: required,
+    options: [["legacy", "原有后端"], ["v2bx-extended", "V2bX"]],
+    onChange: v => form.setValue("backend_profile", v, {shouldDirty: true})}));
+  if (serverType === "masque") {
+    children.push(field("隧道地址池（逗号分隔）", "address", {value: (settings.address || []).join(", "),
+      onChange: v => onChange({...settings, address: v.split(/[\n,]+/).map(s => s.trim()).filter(Boolean)})}),
+      field("MTU", "mtu", {type: "number"}), field("请求路径", "path"), field("请求主机", "masque_host"),
+      field("传输方式", "alpn", {value: (settings.alpn || ["h3"]).join(","),
+        options: [["h3", "HTTP/3"], ["h2", "HTTP/2"], ["h2,h3", "HTTP/2 与 HTTP/3"]],
+        onChange: v => onChange({...settings, alpn: v.split(",")})}),
+      XBCreate(XBField, {key: "sni", label: "证书域名", value: settings.tls_settings?.server_name || "",
+        onChange: v => onChange({...settings, tls: 1, tls_settings: {...settings.tls_settings, server_name: v}})}));
+  } else {
+    children.push(XBCreate(o5t, {key: serverType, serverType: serverType === "mixed" ? "http" : serverType, value, onChange}));
+  }
+  if (extended && serverType === "vless") {
+    children.push(XBCreate(XBJson, {key: "enc", label: "VLESS Encryption 参数", value: settings.encryption,
+      onChange: v => onChange({...settings, encryption: v}), onError: badJson("protocol_settings.encryption")}));
+    if (settings.network === "xdrive") {
+      const drive = settings.network_settings || {};
+      const change = (key, v) => onChange({...settings, network_settings: {...drive, [key]: v}});
+      children.push(XBCreate(XBField, {key: "storage", label: "存储服务", value: drive.service || "local",
+        options: [["local", "本地目录"], ["s3", "S3"], ["google-drive", "Google Drive"], ["template", "自定义模板"]],
+        onChange: v => change("service", v)}),
+        XBCreate(XBField, {key: "folder", label: "存储目录", value: drive.remoteFolder || "", onChange: v => change("remoteFolder", v)}),
+        XBCreate(XBJson, {key: "drive", label: "存储凭据、轮询与分段参数", value: drive,
+          onChange: v => onChange({...settings, network_settings: v}), onError: badJson("protocol_settings.network_settings")}));
+    }
+  }
+  return XBCreate("div", {className: "space-y-4", "data-native-node-settings": true}, ...children);
+}
+
+function XBInstallProtocols() {
+  for (const [type, label, color] of [["mixed", "Mixed", "#2196F3"], ["masque", "MASQUE", "#7E57C2"]]) {
+    rqt.push({type, label}); sqt[type] = color;
+    y5t.push({value: type, label, color});
+  }
+  s5t.mixed = {...s5t.http};
+  s5t.masque = {schema: fy(hy()).default({address: [], mtu: 1500, path: "/", alpn: ["h3"], tls: 1}), component: X4t};
+  s5t.vless.schema = s5t.vless.schema.extend({encryption: fy(hy()).default({enabled: false})});
+  P4t.networkOptions.push({value: "xdrive", label: "XDRIVE"});
+}
+
+const XBMachineBase = OL() + "/server/machine";
+const XBStateLabels = {pending: "待应用", running: "运行中", disabled: "已停用", removed: "已移除", error: "应用失败"};
+function XBBytes(value) {return Number(value || 0) < 1048576 ? (Number(value || 0) / 1024).toFixed(1) + " KiB" : (Number(value) / 1048576).toFixed(2) + " MiB";}
+async function XBRun(action) {try {await action();} catch (e) {gE.error(Object.values(e.response?.data?.errors || {}).flat()[0] || e.response?.data?.message || e.message || "操作失败");}}
+function XBDownload(text, filename) {
+  const url = URL.createObjectURL(new Blob([text], {type: "application/octet-stream"}));
+  const a = document.createElement("a"); a.href = url; a.download = filename; a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+const XBServiceTypes = [["tunnel", "Tunnel"], ["tun", "TUN"], ["wireguard", "WireGuard"], ["amneziawg", "AmneziaWG"], ["mtproto", "MTProto"]];
+function XBMachineInstall({machineId, open, t}) {
+  const [backend, setBackend] = H.useState("xboard-node"), [data, setData] = H.useState(null);
+  H.useEffect(() => {setData(null);}, [machineId]);
+  const fetchInstall = async () => {const response = await IL(XBMachineBase + "/installCommand", {params: {id: machineId, backend: "v2bx"}}); setData(response.data); return response.data;};
+  return XBCreate("div", {className: "space-y-3"},
+    XBCreate(XBField, {label: "安装后端", value: backend, options: [["xboard-node", "原 xboard-node"], ["v2bx", "V2bX"]], onChange: setBackend}),
+    backend === "xboard-node" ? XBCreate(R3t, {machineId, open, t}) :
+      XBCreate(s8e, null, XBCreate(o8e, null, XBCreate(a8e, {className: "text-sm"}, "安装 V2bX")),
+        XBCreate(c8e, {className: "space-y-3"},
+          XBCreate("p", {className: "text-sm text-muted-foreground"}, "机器服务使用同步组件；普通代理节点继续按节点 ID 配置。安装命令只更新组件，配置文件和运行进程保留。"),
+          XBButton("生成安装命令", () => XBRun(fetchInstall)),
+          data && XBCreate("div", {className: "space-y-3"},
+            XBCreate("pre", {className: "overflow-x-auto rounded-md border p-3 font-mono text-xs", style: {whiteSpace: "pre-wrap", overflowWrap: "anywhere"}}, data.command),
+            XBCreate("div", {className: "flex flex-wrap gap-2"}, XBButton("复制安装命令", () => XBRun(async () => {await navigator.clipboard.writeText(data.command); gE.success("已复制");})),
+              XBButton("下载同步配置", () => XBDownload(JSON.stringify(data.agent_config, null, 2), "xboard-agent.json"))),
+            XBCreate("p", {className: "text-sm text-muted-foreground"}, "同步配置含机器凭据，请保存到节点私有目录。按实际安装位置核对二进制和主配置路径，再运行 v2bx panel-agent --config /etc/V2bX/xboard-agent.json。")))));
+}
+function XBServiceEditor({machineId, service, onSaved, onClose}) {
+  const [form, setForm] = H.useState(() => service ? structuredClone(service) : {machine_id: machineId, name: "", type: "tunnel", enabled: false,
+    spec: {Listen: "", Target: "", Network: "tcp"}});
+  const [busy, setBusy] = H.useState(false), [jsonError, setJsonError] = H.useState(false);
+  const spec = form.spec;
+  const change = (key, value) => setForm(f => ({...f, [key]: value}));
+  const set = (key, value) => change("spec", {...spec, [key]: value});
+  const group = (name, key, value) => set(name, {...spec[name], [key]: value});
+  const input = (label, key, options) => XBCreate(XBField, {key, label, value: spec[key], onChange: v => set(key, v), options});
+  const list = (label, name, key) => XBCreate(XBField, {key: name + key, label, value: (spec[name]?.[key] || []).join(", "),
+    onChange: v => group(name, key, v.split(/[\n,]+/).map(s => s.trim()).filter(Boolean))});
+  const fields = [XBCreate(XBField, {key: "name", label: "服务名称", value: form.name, onChange: v => change("name", v)}),
+    XBCreate(XBField, {key: "type", label: "服务类型", value: form.type, disabled: !!service, options: XBServiceTypes,
+      onChange: type => setForm(f => ({...f, type, spec: type === "tunnel" ? {Listen: "", Target: "", Network: "tcp"}
+        : type === "tun" ? {TUN: {Interface: "", Address: [], AutoRoute: false}}
+        : ["wireguard", "amneziawg"].includes(type) ? {Listen: "", WireGuard: {Address: [], Endpoint: ""}, ...(type === "amneziawg" ? {BackendProfile: "", Obfuscation: {}} : {})}
+        : {Listen: "", PublicIP: "", Secret: "", BackendProfile: ""}}))}),
+    XBCreate(XBCheck, {key: "enabled", label: "启用服务", checked: form.enabled, onChange: v => change("enabled", v)})];
+  if (form.type !== "tun") fields.push(input("监听地址", "Listen"));
+  if (form.type === "tunnel") fields.push(input("转发目标", "Target"), input("转发协议", "Network", [["tcp", "TCP"], ["udp", "UDP"], ["tcp,udp", "TCP 与 UDP"]]));
+  if (form.type === "tun") fields.push(XBCreate(XBField, {key: "interface", label: "网卡名称", value: spec.TUN?.Interface, onChange: v => group("TUN", "Interface", v)}),
+    list("网卡地址", "TUN", "Address"), XBCreate(XBCheck, {key: "autoroute", label: "自动配置路由", checked: spec.TUN?.AutoRoute, onChange: v => group("TUN", "AutoRoute", v)}),
+    list("接管网段", "TUN", "RouteAddress"), list("排除网段", "TUN", "RouteExcludeAddress"),
+    XBCreate(XBField, {key: "outbound", label: "出口网卡（可选）", value: spec.TUN?.OutboundInterface, onChange: v => group("TUN", "OutboundInterface", v || undefined)}));
+  if (["wireguard", "amneziawg"].includes(form.type)) fields.push(list("服务端地址及分配池", "WireGuard", "Address"),
+    XBCreate(XBField, {key: "endpoint", label: "客户端连接地址", value: spec.WireGuard?.Endpoint, onChange: v => group("WireGuard", "Endpoint", v)}),
+    list("客户端 DNS", "WireGuard", "DNS"), list("客户端允许网段", "WireGuard", "ClientAllowedIPs"));
+  if (["tun", "wireguard", "amneziawg"].includes(form.type)) {
+    const name = form.type === "tun" ? "TUN" : "WireGuard";
+    fields.push(XBCreate(XBField, {key: "mtu", label: "MTU（可选）", type: "number", value: spec[name]?.MTU,
+      onChange: v => group(name, "MTU", v === "" ? undefined : v)}));
+  }
+  if (["amneziawg", "mtproto"].includes(form.type)) fields.push(input("节点本机后端名称", "BackendProfile"));
+  if (form.type === "amneziawg") fields.push(XBCreate(XBJson, {key: "obfs", label: "混淆参数", value: spec.Obfuscation, onChange: v => set("Obfuscation", v), onError: setJsonError}));
+  if (form.type === "mtproto") fields.push(input("公网主机", "PublicIP"), XBCreate(XBField, {key: "secret", type: "password", label: "连接 Secret", value: spec.Secret, onChange: v => set("Secret", v)}));
+  if (form.type === "mtproto") fields.push(XBCreate(XBField, {key: "concurrency", label: "并发连接数（可选）", type: "number", value: spec.Concurrency,
+    onChange: v => set("Concurrency", v === "" ? undefined : v)}));
+  const save = () => XBRun(async () => {setBusy(true); try {
+    if (!form.name.trim() || jsonError) throw Error("请填写服务名称并修正配置");
+    await RL(XBMachineBase + "/services/save", {id: service?.id, machine_id: machineId, name: form.name, type: form.type, enabled: form.enabled, spec});
+    await onSaved(); onClose(); gE.success("已保存，等待节点应用");
+  } finally {setBusy(false);}});
+  return XBCreate(htt, {open: true, onOpenChange: onClose}, XBCreate(ptt, {className: "max-w-xl overflow-y-auto", style: {maxHeight: "85vh"}},
+    XBCreate(mtt, null, XBCreate(_tt, null, service ? "编辑机器服务" : "添加机器服务")), XBCreate("div", {className: "space-y-4"}, ...fields),
+    XBCreate(ftt, null, XBButton("取消", onClose), XBButton(busy ? "保存中…" : "保存", save, {disabled: busy || jsonError}))));
+}
+function XBPeerManager({service, onReload, onClose}) {
+  const blank = {user_id: "", public_key: "", preshared_key: "", clear_psk: false, keepalive: 25, enabled: true};
+  const [peer, setPeer] = H.useState(blank), [busy, setBusy] = H.useState(false);
+  const rows = (service.peers || []).filter(p => !p.retired);
+  const edit = (key, value) => setPeer(p => ({...p, [key]: value}));
+  const submit = () => XBRun(async () => {setBusy(true); try {
+    const data = {service_id: service.id, user_id: Number(peer.user_id), public_key: peer.public_key, keepalive: Number(peer.keepalive), enabled: peer.enabled};
+    if (peer.clear_psk) data.preshared_key = null;
+    else if (peer.preshared_key) data.preshared_key = peer.preshared_key;
+    await RL(XBMachineBase + "/peers/save", data); setPeer(blank); await onReload(); gE.success("Peer 已保存，等待节点应用");
+  } finally {setBusy(false);}});
+  return XBCreate(htt, {open: true, onOpenChange: onClose}, XBCreate(ptt, {className: "max-w-2xl overflow-y-auto", style: {maxHeight: "85vh"}},
+    XBCreate(mtt, null, XBCreate(_tt, null, service.name + " · Peer 管理")),
+    rows.length ? XBCreate("div", {className: "space-y-3"}, ...rows.map(p => {
+      const runtime = service.runtime?.peers?.find(r => Number(r.UID) === Number(p.user_id));
+      return XBCreate("div", {key: p.id, className: "rounded-md border p-3 space-y-2"},
+        XBCreate("p", {className: "font-mono text-xs"}, "用户 " + p.user_id + " · " + p.addresses.join(", ") + (p.deleting ? " · 正在撤销" : p.enabled ? "" : " · 已停用")),
+        XBCreate("p", {className: "break-all font-mono text-xs text-muted-foreground"}, p.public_key),
+        XBCreate("p", {className: "font-mono text-xs text-muted-foreground"}, "↑ " + XBBytes(p.u) + " ↓ " + XBBytes(p.d) + (runtime?.LastHandshake ? " · 最近握手 " + new Date(runtime.LastHandshake * 1000).toLocaleString("zh-CN") : " · 暂无握手记录")),
+        runtime?.Endpoint && XBCreate("p", {className: "font-mono text-xs text-muted-foreground"}, runtime.Endpoint),
+        !p.deleting && XBCreate("div", {className: "flex flex-wrap gap-2"}, XBButton("编辑", () => setPeer({...p, preshared_key: "", clear_psk: false})),
+          XBButton(p.enabled ? "停用" : "启用", () => XBRun(async () => {await RL(XBMachineBase + "/peers/save", {service_id: service.id, user_id: p.user_id, public_key: p.public_key, keepalive: p.keepalive, enabled: !p.enabled}); await onReload();})),
+          XBButton("撤销", () => XBRun(async () => {await RL(XBMachineBase + "/peers/remove", {id: p.id}); await onReload();}), {variant: "destructive"})));
+    })) : XBCreate("p", {className: "py-4 text-sm text-muted-foreground"}, "尚未分配 Peer"),
+    XBCreate("div", {className: "space-y-3 border-t pt-4"}, XBButton("新增 Peer", () => setPeer(blank)),
+      XBCreate(XBField, {label: "用户 ID", type: "number", value: peer.user_id, onChange: v => edit("user_id", v)}),
+      XBCreate(XBField, {label: "客户端公钥", value: peer.public_key, onChange: v => edit("public_key", v)}),
+      XBCreate(XBField, {label: "预共享密钥（留空保留）", type: "password", value: peer.preshared_key, onChange: v => edit("preshared_key", v)}),
+      XBCreate(XBCheck, {label: "清除预共享密钥", checked: peer.clear_psk, onChange: v => edit("clear_psk", v)}),
+      XBCreate(XBField, {label: "保活间隔", type: "number", value: peer.keepalive, onChange: v => edit("keepalive", v)}),
+      XBCreate(XBCheck, {label: "启用 Peer", checked: peer.enabled, onChange: v => edit("enabled", v)})),
+    XBCreate(ftt, null, XBButton("关闭", onClose), XBButton("保存 Peer", submit, {disabled: busy}))));
+}
+function XBMachineServices({machineId, open}) {
+  const [rows, setRows] = H.useState([]), [loading, setLoading] = H.useState(true), [error, setError] = H.useState("");
+  const [query, setQuery] = H.useState(""), [type, setType] = H.useState("all"), [editor, setEditor] = H.useState(null), [peerId, setPeerId] = H.useState(null);
+  const [selected, setSelected] = H.useState([]), [busy, setBusy] = H.useState(false);
+  const reload = H.useCallback(async () => {try {const response = await IL(XBMachineBase + "/services", {params: {machine_id: machineId}}); setRows(response.data || []); setError("");} catch {setError("服务读取失败，请重试");} finally {setLoading(false);}}, [machineId]);
+  H.useEffect(() => {if (!open) return; setRows([]); setLoading(true); reload(); const timer = setInterval(reload, 5000); return () => clearInterval(timer);}, [machineId, open, reload]);
+  const action = (action, ids) => XBRun(async () => {setBusy(true); try {await RL(XBMachineBase + "/services/action", {action, ids}); setSelected([]); await reload();} finally {setBusy(false);}});
+  const filtered = rows.filter(s => s.name.includes(query) && (type === "all" || s.type === type));
+  const peerService = rows.find(s => s.id === peerId);
+  return XBCreate(s8e, {"data-native-machine-services": true}, XBCreate(o8e, null, XBCreate(a8e, {className: "text-sm"}, "机器服务")),
+    XBCreate(c8e, {className: "space-y-4"},
+      XBCreate("div", {className: "flex flex-wrap items-end gap-2"}, XBCreate(XBField, {label: "查询服务", value: query, onChange: setQuery}),
+        XBCreate(XBField, {label: "服务类型", value: type, onChange: setType, options: [["all", "全部"], ...XBServiceTypes]}),
+        XBButton("刷新", () => XBRun(reload)), XBButton("添加服务", () => setEditor({}))),
+      selected.length > 0 && XBCreate("div", {className: "flex flex-wrap gap-2"}, ...[["enable", "批量启用"], ["disable", "批量停用"], ["remove", "批量撤销"]].map(([a, l]) => XBButton(l, () => action(a, selected), {key: a, disabled: busy}))),
+      error && XBCreate("p", {role: "alert", className: "text-destructive"}, error),
+      loading ? XBCreate("p", {className: "text-sm text-muted-foreground"}, "正在读取服务…") : !filtered.length ? XBCreate("p", {className: "py-4 text-sm text-muted-foreground"}, query || type !== "all" ? "没有匹配的服务" : "这台机器尚未添加服务") :
+        XBCreate("div", {className: "overflow-x-auto"}, XBCreate("table", {className: "w-full text-xs"},
+          XBCreate("thead", null, XBCreate("tr", {className: "border-b"}, ...["选择", "服务", "实际状态", "流量", "操作"].map(v => XBCreate("th", {key: v, className: "px-2 py-2 text-left font-medium"}, v)))),
+          XBCreate("tbody", null, ...filtered.map(s => XBCreate("tr", {key: s.id, className: "border-b"},
+            XBCreate("td", {className: "px-2 py-3"}, XBCreate(oZt, {"aria-label": "选择 " + s.name, checked: selected.includes(s.id), disabled: s.deleting || busy,
+              onCheckedChange: checked => setSelected(v => checked ? [...v, s.id] : v.filter(id => id !== s.id))})),
+            XBCreate("td", {className: "px-2 py-3"}, s.name, XBCreate("p", {className: "text-muted-foreground"}, s.type)),
+            XBCreate("td", {className: "px-2 py-3"}, s.runtime?.reported_at && Date.now()/1000 - s.runtime.reported_at > 60 && s.state !== "removed" ? "状态已过期" : XBStateLabels[s.state] || s.state,
+              s.runtime?.error && XBCreate("p", {className: "text-destructive"}, s.runtime.error)),
+            XBCreate("td", {className: "px-2 py-3 font-mono"}, "↑ " + XBBytes(s.u) + " ↓ " + XBBytes(s.d)),
+            XBCreate("td", {className: "px-2 py-3"}, !s.deleting && XBCreate("div", {className: "flex flex-wrap gap-2"},
+              XBButton("编辑", () => setEditor(s)), XBButton(s.enabled ? "停用" : "启用", () => action(s.enabled ? "disable" : "enable", [s.id]), {disabled: busy}),
+              XBButton("重启", () => action("restart", [s.id]), {disabled: busy}), XBButton("撤销", () => action("remove", [s.id]), {variant: "destructive", disabled: busy}),
+              ["wireguard", "amneziawg"].includes(s.type) && XBButton("Peer", () => setPeerId(s.id)),
+              s.type === "mtproto" && XBButton("下载连接", () => XBRun(async () => {const r = await RL(XBMachineBase + "/services/link", {id: s.id}); XBDownload(r, "mtproto-" + s.id + ".txt");}))))))))),
+      editor && XBCreate(XBServiceEditor, {key: editor.id || "new", machineId, service: editor.id ? editor : null, onSaved: reload, onClose: () => setEditor(null)}),
+      peerService && XBCreate(XBPeerManager, {service: peerService, onReload: reload, onClose: () => setPeerId(null)})));
+}
+
+XBInstallProtocols();

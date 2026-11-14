@@ -60,6 +60,9 @@ class UserRoute
             $router->post('/ticket/withdraw', [TicketController::class, 'withdraw']);
             // Server
             $router->get('/server/fetch', [ServerController::class, 'fetch']);
+            $router->get('/server/connections', [\App\Http\Controllers\V2\V2bXExportController::class, 'connections']);
+            $router->post('/server/export', [\App\Http\Controllers\V2\V2bXExportController::class, 'export']);
+            $router->post('/server/rotateCredentials', [\App\Http\Controllers\V2\V2bXController::class, 'rotate']);
             // Coupon
             $router->post('/coupon/check', [CouponController::class, 'check']);
             // Gift Card

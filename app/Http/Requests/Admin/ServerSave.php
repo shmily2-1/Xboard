@@ -82,6 +82,11 @@ class ServerSave extends FormRequest
             'encryption.enabled' => 'nullable|boolean',
             'encryption.encryption' => 'nullable|string',
             'encryption.decryption' => 'nullable|string',
+            'encryption.method' => 'nullable|in:mlkem768x25519plus',
+            'encryption.mode' => 'nullable|in:native,xorpub,random',
+            'encryption.ticket' => 'nullable|string|max:64',
+            'encryption.server_padding' => 'nullable|string|max:512',
+            'encryption.private_key' => 'nullable|string|max:8192',
         ],
         'socks' => [
             'tls' => 'nullable|integer',
@@ -91,6 +96,16 @@ class ServerSave extends FormRequest
         ],
         'http' => [
             'tls' => 'required|integer',
+        ],
+        'mixed' => ['tls' => 'required|integer|in:0,1'],
+        'masque' => [
+            'address' => 'required|array|min:1|max:2',
+            'address.*' => 'required|string|max:64',
+            'mtu' => 'required|integer|min:1280|max:65535',
+            'path' => 'required|string|max:512|starts_with:/',
+            'masque_host' => 'nullable|string|max:255',
+            'alpn' => 'required|array|min:1|max:2',
+            'alpn.*' => 'required|in:h2,h3',
         ],
         'tuic' => [
             'version' => 'nullable|integer',
@@ -113,6 +128,7 @@ class ServerSave extends FormRequest
     {
         return [
             'type' => 'required|in:' . implode(',', Server::VALID_TYPES),
+            'backend_profile' => 'sometimes|required|in:legacy,v2bx-extended',
             'spectific_key' => 'nullable|string',
             'code' => 'nullable|string',
             'show' => '',
@@ -179,7 +195,7 @@ class ServerSave extends FormRequest
                 self::MULTIPLEX_RULES,
                 self::UTLS_RULES,
             ),
-            'socks', 'naive', 'http' => array_merge(
+            'socks', 'naive', 'http', 'mixed', 'masque' => array_merge(
                 $rules,
                 $this->buildTlsSettingsRules(includeRoot: $type !== 'socks'),
             ),
@@ -237,6 +253,28 @@ class ServerSave extends FormRequest
         }
 
         return $rules;
+    }
+
+    public function withValidator($validator): void
+    {
+        $validator->after(function ($validator) {
+            if ($validator->errors()->isNotEmpty()) { return; }
+            $profile = $this->input('backend_profile', $this->input('id')
+                ? Server::find($this->input('id'))?->backend_profile : 'legacy');
+            if (in_array($this->input('type'), ['mixed', 'masque'], true) && $profile !== 'v2bx-extended') {
+                $validator->errors()->add('backend_profile', '请选择 V2bX 扩展后端');
+                return;
+            }
+            if ($profile === 'v2bx-extended') {
+                try {
+                    \App\Services\V2bX\NodeConfig::build(new Server($this->all()));
+                } catch (\Illuminate\Validation\ValidationException $e) {
+                    foreach ($e->errors() as $key => $messages) {
+                        foreach ($messages as $message) { $validator->errors()->add($key, $message); }
+                    }
+                }
+            }
+        });
     }
 
     public function attributes(): array

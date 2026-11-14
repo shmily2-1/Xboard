@@ -15,6 +15,9 @@ class UserRoute
             // User
             $router->get('/resetSecurity', [UserController::class, 'resetSecurity']);
             $router->get('/info', [UserController::class, 'info']);
+            $router->get('/server/connections', [\App\Http\Controllers\V2\V2bXExportController::class, 'connections']);
+            $router->post('/server/export', [\App\Http\Controllers\V2\V2bXExportController::class, 'export']);
+            $router->post('/server/rotateCredentials', [\App\Http\Controllers\V2\V2bXController::class, 'rotate']);
         });
     }
 }

@@ -244,11 +244,12 @@ class QuantumultX extends AbstractProtocol
 
     public static function buildHttp($password, $server)
     {
+        $username = $server['username'] ?? $password;
         $protocol_settings = $server['protocol_settings'];
         $addr = Helper::wrapIPv6($server['host']);
         $config = [
             "http={$addr}:{$server['port']}",
-            "username={$password}",
+            "username={$username}",
             "password={$password}",
         ];
 

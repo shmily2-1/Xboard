@@ -451,7 +451,8 @@ class General extends AbstractProtocol
         $protocol_settings = data_get($server, 'protocol_settings', []);
         $name = rawurlencode($server['name']);
         $addr = Helper::wrapIPv6($server['host']);
-        $credentials = base64_encode("{$password}:{$password}");
+        $username = $server['username'] ?? $password;
+        $credentials = base64_encode("{$username}:{$password}");
 
         $params = [];
         if (data_get($protocol_settings, 'tls')) {

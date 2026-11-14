@@ -549,7 +549,7 @@ class Stash extends AbstractProtocol
             'type' => 'http',
             'server' => $server['host'],
             'port' => $server['port'],
-            'username' => $password,
+            'username' => $server['username'] ?? $password,
             'password' => $password,
         ];
 

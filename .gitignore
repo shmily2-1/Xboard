@@ -1,4 +1,8 @@
 /node_modules
+__pycache__/
+*.pyc
+/storage/v2bx-integration/
+/public/assets/admin/xboard-admin-dist-*/
 /config/v2board.php
 /config/googleCloudStorageKey.json
 /public/hot

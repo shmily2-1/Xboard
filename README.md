@@ -1,5 +1,7 @@
 # Xboard
 
+V2bX 扩展节点与服务管理的安装、配置、计量和验收边界见 [V2bX 适配说明](docs/V2BX-ADAPTATION.md)。
+
 <div align="center">
 
 [![Telegram](https://img.shields.io/badge/Telegram-Channel-blue)](https://t.me/XboardOfficial)
