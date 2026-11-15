@@ -170,6 +170,8 @@ class Server extends Model
                 'public_key' => ['type' => 'string', 'default' => null],
                 'private_key' => ['type' => 'string', 'default' => null],
                 'short_id' => ['type' => 'string', 'default' => null],
+                'mldsa65Seed' => ['type' => 'string', 'default' => null],
+                'mldsa65Verify' => ['type' => 'string', 'default' => null],
                 'allow_insecure' => ['type' => 'boolean', 'default' => false],
             ]
         ]

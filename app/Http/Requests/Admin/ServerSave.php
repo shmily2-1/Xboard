@@ -39,6 +39,8 @@ class ServerSave extends FormRequest
         'reality_settings.public_key' => 'nullable|string',
         'reality_settings.private_key' => 'nullable|string',
         'reality_settings.short_id' => 'nullable|string',
+        'reality_settings.mldsa65Seed' => 'nullable|string|max:8192',
+        'reality_settings.mldsa65Verify' => 'nullable|string|max:8192',
     ];
 
     private const PROTOCOL_RULES = [

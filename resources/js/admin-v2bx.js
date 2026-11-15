@@ -40,10 +40,16 @@ function XBJson({label, value, onChange, onError}) {
 function XBRandomText(length = 16) { const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789"; const bytes = crypto.getRandomValues(new Uint8Array(length)); return Array.from(bytes, b => chars[b % chars.length]).join(""); }
 function XBRandomB64URL(bytes = 32) { const raw = crypto.getRandomValues(new Uint8Array(bytes)); let text = ""; for (const b of raw) text += String.fromCharCode(b); return btoa(text).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/g,""); }
 function XBEncryptionEditor({value, onChange}) {
-  const v = value || {}; const update = (key, next) => onChange({...v, [key]: next, enabled: true});
+  const v = value || {}; const [busy, setBusy] = H.useState(false); const update = (key, next) => onChange({...v, [key]: next, enabled: true});
   const generate = () => { const privateKey = XBRandomB64URL(32); onChange({...v, enabled: true, method: v.method || "mlkem768x25519plus", mode: v.mode || "random", ticket: v.ticket || "600s", private_key: privateKey, decryption: [v.method || "mlkem768x25519plus", v.mode || "random", v.ticket || "600s", v.server_padding || "", privateKey].filter(Boolean).join(".")}); };
+  const generateNative = () => XBRun(async () => { setBusy(true); try {
+    const response = await RL(OL() + "/server/manage/generateNodeKeys", {kind: "vless_encryption", core: "xray"});
+    const data = response?.data || response;
+    onChange({...v, enabled: true, method: "mlkem768x25519plus", mode: "native", ticket: "600s", private_key: data.decryption?.split(".").slice(3).join("."), decryption: data.decryption, encryption: data.encryption});
+    gE.success("已按锁定 Xray 生成 VLESS 成对参数");
+  } finally { setBusy(false); }});
   return XBCreate("div", {className: "space-y-3 rounded-md border bg-muted/20 p-3"},
-    XBCreate("div", {className: "flex items-center justify-between"}, XBCreate("strong", null, "VLESS Encryption（可选）"), v.enabled && XBButton("自动生成服务端参数", generate)),
+    XBCreate("div", {className: "flex items-center justify-between"}, XBCreate("strong", null, "VLESS Encryption（可选）"), v.enabled && XBCreate("div", {className: "flex gap-2"}, XBButton("按 Xray 生成成对参数", generateNative, {disabled: busy}), XBButton("本地生成服务端参数", generate, {disabled: busy}))),
     XBCreate(XBCheck, {label: "启用 VLESS Encryption", checked: !!v.enabled, onChange: n => onChange({...v, enabled: n})}),
     v.enabled && XBCreate("div", {className: "space-y-3"},
       XBCreate(XBField, {label: "加密方法", value: v.method || "mlkem768x25519plus", options: [["mlkem768x25519plus", "ML-KEM-768 + X25519"]], onChange: n => update("method", n)}),
@@ -76,6 +82,22 @@ function XBHysteriaEditor({form, value, onChange}) {
     XBCheck ? XBCreate("div", {className: "space-y-3 border-t pt-3"}, XBCreate("strong", null, "QUIC 参数"), XBCreate(XBField, {label: "初始包大小", type: "number", value: quic.initial_packet_size || 0, disabled: xrayBackend, help: xrayBackend ? "Xray 后端不接受 sing-box 的 initial_packet_size，请保持为 0。" : null, onChange: n => setQuic("initial_packet_size", n)}), XBCreate(XBCheck, {label: "禁用 Path MTU Discovery", checked: !!quic.disable_path_mtu_discovery, onChange: n => setQuic("disable_path_mtu_discovery", n)})) : null,
     XBCreate("div", {className: "space-y-3 border-t pt-3"}, XBCreate("strong", null, "传输伪装 / Masquerade"), XBCreate(XBJson, {label: "Masquerade 配置", value: v.masquerade || {}, onChange: n => set("masquerade", n)})));
 }
+function XBRealityGenerator({value, onChange}) {
+  const reality = value || {}, [busy, setBusy] = H.useState(false);
+  const generate = () => XBRun(async () => { setBusy(true); try {
+    const [x25519, mldsa, shortId] = await Promise.all([
+      RL(OL() + "/server/manage/generateNodeKeys", {kind: "x25519", core: "xray"}),
+      RL(OL() + "/server/manage/generateNodeKeys", {kind: "mldsa65", core: "xray"}),
+      RL(OL() + "/server/manage/generateNodeKeys", {kind: "short_id", core: "xray"}),
+    ]);
+    const x = x25519?.data || x25519, m = mldsa?.data || mldsa, s = shortId?.data || shortId;
+    onChange({...reality, private_key: x.private_key, public_key: x.public_key, short_id: s.short_id, mldsa65Seed: m.seed, mldsa65Verify: m.verify});
+    gE.success("已按 Xray 生成 Reality 参数");
+  } finally { setBusy(false); }});
+  return XBCreate("div", {className: "space-y-3 rounded-md border bg-muted/20 p-3"},
+    XBCreate("div", {className: "flex items-center justify-between"}, XBCreate("strong", null, "REALITY 密钥"), XBButton("按 Xray 自动生成", generate, {disabled: busy})),
+    XBCreate("p", {className: "text-xs text-muted-foreground"}, "生成 X25519、公钥、Short ID 和 MLDSA65 Seed/Verify；域名、Dest 和证书仍需填写。"));
+}
 function XBNodeProtocol({form, serverType, value, onChange}) {
   const profile = form.watch("backend_profile") || "legacy";
   const settings = value || {};
@@ -107,6 +129,7 @@ function XBNodeProtocol({form, serverType, value, onChange}) {
   }
   if (serverType === "vless") {
     children.push(XBCreate(XBEncryptionEditor, {key: "enc", value: settings.encryption, onChange: v => onChange({...settings, encryption: v})}));
+    if (settings.tls === 2) children.push(XBCreate(XBRealityGenerator, {key: "reality-generator", value: settings.reality_settings, onChange: v => onChange({...settings, reality_settings: v})}));
     if (settings.network === "xdrive") {
       const drive = settings.network_settings || {};
       const change = (key, v) => onChange({...settings, network_settings: {...drive, [key]: v}});

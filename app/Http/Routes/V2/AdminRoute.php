@@ -94,6 +94,7 @@ class AdminRoute
                 $router->post('/resetTraffic', [ManageController::class, 'resetTraffic']);
                 $router->post('/batchResetTraffic', [ManageController::class, 'batchResetTraffic']);
                 $router->get('/generateEchKey', [ManageController::class, 'generateEchKey']);
+                $router->post('/generateNodeKeys', [ManageController::class, 'generateNodeKeys']);
                 $router->post('/credentials/rotate', [\App\Http\Controllers\V2\V2bXController::class, 'rotate']);
             });
 

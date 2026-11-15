@@ -5,6 +5,7 @@ namespace App\Http\Controllers\V2\Admin\Server;
 use App\Exceptions\ApiException;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\ServerSave;
+use App\Services\V2bX\KeyGenerator;
 use App\Models\Server;
 use App\Models\ServerGroup;
 use App\Services\ServerService;
@@ -337,5 +338,14 @@ class ManageController extends Controller
             'key' => $keyPem,
             'config' => $configPem,
         ]);
+    }
+
+    public function generateNodeKeys(Request $request)
+    {
+        $data = $request->validate([
+            'kind' => 'required|in:x25519,vless_encryption,mlkem768,mldsa65,short_id,hy2_password,wireguard_psk',
+            'core' => 'nullable|in:xray,sing-box',
+        ]);
+        return $this->success(KeyGenerator::generate($data['kind'], $data['core'] ?? 'xray'));
     }
 }
