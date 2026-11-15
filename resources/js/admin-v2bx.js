@@ -48,19 +48,10 @@ function XBEncryptionEditor({value, onChange}) {
     onChange({...v, enabled: true, method: "mlkem768x25519plus", mode: "native", ticket: "600s", private_key: data.decryption?.split(".").slice(3).join("."), decryption: data.decryption, encryption: data.encryption});
     gE.success("已按锁定 Xray 生成 VLESS 成对参数");
   } finally { setBusy(false); }});
-  return XBCreate("div", {className: "space-y-3 rounded-md border bg-muted/20 p-3"},
-    XBCreate("div", {className: "flex items-center justify-between"}, XBCreate("strong", null, "VLESS Encryption（可选）"), v.enabled && XBCreate("div", {className: "flex gap-2"}, XBButton("按 Xray 生成成对参数", generateNative, {disabled: busy}), XBButton("本地生成服务端参数", generate, {disabled: busy}))),
-    XBCreate(XBCheck, {label: "启用 VLESS Encryption", checked: !!v.enabled, onChange: n => onChange({...v, enabled: n})}),
-    v.enabled && XBCreate("div", {className: "space-y-3"},
-      XBCreate(XBField, {label: "加密方法", value: v.method || "mlkem768x25519plus", options: [["mlkem768x25519plus", "ML-KEM-768 + X25519"]], onChange: n => update("method", n)}),
-      XBCreate(XBField, {label: "模式", value: v.mode || "random", options: [["native", "native"], ["xorpub", "xorpub"], ["random", "random"]], onChange: n => update("mode", n)}),
-      XBCreate(XBField, {label: "票据有效期", value: v.ticket || "600s", onChange: n => update("ticket", n)}),
-      XBCreate(XBField, {label: "服务端私钥 / Seed", type: "password", value: v.private_key || "", onChange: n => update("private_key", n)}),
-      XBCreate(XBField, {label: "客户端公钥参数", type: "password", value: v.encryption || "", onChange: n => update("encryption", n)}),
-      XBCreate(XBField, {label: "服务端填充（可选）", value: v.server_padding || "", onChange: n => update("server_padding", n)}),
-      XBCreate(XBField, {label: "解密参数（高级）", value: v.decryption || "", onChange: n => update("decryption", n)}),
-      XBCreate("p", {className: "text-xs text-muted-foreground"}, "自动生成会生成服务端私钥和解密参数；MLDSA65 属于 REALITY 参数，不放在 Encryption 中。")),
-    !v.enabled && XBCreate("p", {className: "text-xs text-muted-foreground"}, "关闭时使用普通 VLESS；启用后由 V2bX/Xray 下发 Encryption 配置。"));
+  return XBCreate("div", {className: "flex flex-wrap items-center gap-2 border-t pt-3"},
+    XBCreate("span", {className: "text-xs text-muted-foreground"}, "VLESS Encryption 参数生成"),
+    XBButton("按 Xray 生成成对参数", generateNative, {disabled: busy}),
+    XBButton("本地生成服务端参数", generate, {disabled: busy}));
 }
 function XBHysteriaEditor({form, value, onChange}) {
   const v = value || {}, ob = v.obfs || {}, quic = v.quic || {}, profile = form.watch("backend_profile") || "legacy", xrayBackend = profile === "v2bx-extended";
@@ -78,7 +69,7 @@ function XBHysteriaEditor({form, value, onChange}) {
     ob.open && XBCreate("div", {className: "space-y-3"},
       XBCreate(XBField, {label: "伪装类型", value: ob.type || "salamander", options: [["salamander", "Salamander (Hysteria2)"], ["gecko", "Gecko experimental"]], onChange: setObMode}),
       XBCreate(XBField, {label: "模式", value: ob.mode || ob.type || "salamander", options: [["salamander", "Salamander"], ["gecko", "Gecko experimental"]], onChange: setObMode}),
-      XBCreate(XBField, {label: "伪装密码", type: "password", value: ob.password || "", onChange: n => setOb("password", n)}), XBButton("自动生成伪装密码", generate),
+      XBCreate(XBField, {label: "伪装密码", value: ob.password || "", onChange: n => setOb("password", n)}), XBButton("自动生成伪装密码", generate),
       (ob.mode === "gecko" || ob.type === "gecko") && XBCreate("div", {className: "grid grid-cols-2 gap-3"}, XBCreate(XBField, {label: "Packet Min", type: "number", value: ob.min_packet_size || 512, onChange: n => setOb("min_packet_size", n)}), XBCreate(XBField, {label: "Packet Max", type: "number", value: ob.max_packet_size || 1200, onChange: n => setOb("max_packet_size", n)}))),
     XBCheck ? XBCreate("div", {className: "space-y-3 border-t pt-3"}, XBCreate("strong", null, "QUIC 参数"), XBCreate(XBField, {label: "初始包大小", type: "number", value: quic.initial_packet_size || 0, disabled: xrayBackend, help: xrayBackend ? "Xray 后端不接受 sing-box 的 initial_packet_size，请保持为 0。" : null, onChange: n => setQuic("initial_packet_size", n)}), XBCreate(XBCheck, {label: "禁用 Path MTU Discovery", checked: !!quic.disable_path_mtu_discovery, onChange: n => setQuic("disable_path_mtu_discovery", n)})) : null,
     XBCreate(XBHysteriaMasqueradeEditor, {value: v.masquerade, onChange: n => set("masquerade", n)}));
