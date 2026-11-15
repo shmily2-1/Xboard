@@ -92,7 +92,14 @@ class NodeConfig
             $out['tls'] = 1;
         }
         if ($node->type === 'vless') {
-            $out += ['network' => $p['network'], 'network_settings' => $p['network_settings'],
+            $networkSettings = $p['network_settings'] ?? [];
+            // Xray transport settings are JSON objects. Older Xboard forms
+            // persisted an empty array for TCP, which Xray rejects during
+            // unmarshalling; normalize an empty value to {} at the API edge.
+            if (is_array($networkSettings) && $networkSettings === []) {
+                $networkSettings = (object) [];
+            }
+            $out += ['network' => $p['network'], 'network_settings' => $networkSettings,
                 'tls_settings' => $out['tls'] === 2 ? $p['reality_settings'] : $p['tls_settings'],
                 'flow' => $p['flow'] ?? ''];
             $out += self::encryption($p);

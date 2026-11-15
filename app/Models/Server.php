@@ -259,7 +259,7 @@ class Server extends Model
                 ]
             ],
             'network' => ['type' => 'string', 'default' => null],
-            'network_settings' => ['type' => 'array', 'default' => null],
+            'network_settings' => ['type' => 'object', 'default' => null],
             ...self::REALITY_CONFIGURATION,
             ...self::MULTIPLEX_CONFIGURATION,
             ...self::UTLS_CONFIGURATION
@@ -364,7 +364,9 @@ class Server extends Model
             'string' => (string) $value,
             'array' => (array) $value,
             'object' => is_array($value) ?
-            $this->castSettingsWithConfig($value, $config['fields']) :
+            (array_key_exists('fields', $config)
+                ? $this->castSettingsWithConfig($value, $config['fields'])
+                : $value) :
             $config['default'] ?? null,
             default => $value
         };
