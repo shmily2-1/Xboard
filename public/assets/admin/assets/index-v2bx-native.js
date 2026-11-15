@@ -175,7 +175,11 @@ function XBEncryptionEditor({value, tlsSettings, onChange, onTlsChange, onError}
     XBCreate("p", {className: "text-xs text-muted-foreground"}, "自动生成会生成服务端 X25519 私钥和解密参数；客户端公钥参数仍需按锁定 Xray 客户端生成。"));
 }
 function XBHysteriaEditor({form, value, onChange}) {
-  const v = value || {}, ob = v.obfs || {}, quic = v.quic || {}; const set = (key, next) => onChange({...v, [key]: next}); const setOb = (key, next) => set("obfs", {...ob, [key]: next}); const setQuic = (key, next) => set("quic", {...quic, [key]: next});
+  const v = value || {}, ob = v.obfs || {}, quic = v.quic || {}, profile = form.watch("backend_profile") || "legacy", xrayBackend = profile === "v2bx-extended";
+  const set = (key, next) => onChange({...v, [key]: next});
+  const setOb = (key, next) => onChange({...v, obfs: {...ob, [key]: next}});
+  const setObMode = next => onChange({...v, obfs: {...ob, open: true, type: next, mode: next}});
+  const setQuic = (key, next) => onChange({...v, quic: {...quic, [key]: next}});
   const generate = () => setOb("password", XBRandomText(18));
   return XBCreate("div", {className: "space-y-4 rounded-md border bg-muted/20 p-3"},
     XBCreate("strong", null, "Hysteria2 传输与伪装"),
@@ -183,23 +187,23 @@ function XBHysteriaEditor({form, value, onChange}) {
     XBCreate(XBField, {label: "UDP 空闲超时（秒）", value: v.udp_idle_timeout || 60, type: "number", onChange: n => set("udp_idle_timeout", n)}),
     XBCreate(XBCheck, {label: "启用 UDP 伪装", checked: !!ob.open, onChange: n => setOb("open", n)}),
     ob.open && XBCreate("div", {className: "space-y-3"},
-      XBCreate(XBField, {label: "伪装类型", value: ob.type || "salamander", options: [["salamander", "Salamander (Hysteria2)"], ["gecko", "Gecko experimental"]], onChange: n => {setOb("type", n); setOb("mode", n);}}),
-      XBCreate(XBField, {label: "模式", value: ob.mode || ob.type || "salamander", options: [["salamander", "Salamander"], ["gecko", "Gecko experimental"]], onChange: n => {setOb("mode", n); setOb("type", n);}}),
+      XBCreate(XBField, {label: "伪装类型", value: ob.type || "salamander", options: [["salamander", "Salamander (Hysteria2)"], ["gecko", "Gecko experimental"]], onChange: setObMode}),
+      XBCreate(XBField, {label: "模式", value: ob.mode || ob.type || "salamander", options: [["salamander", "Salamander"], ["gecko", "Gecko experimental"]], onChange: setObMode}),
       XBCreate(XBField, {label: "伪装密码", type: "password", value: ob.password || "", onChange: n => setOb("password", n)}), XBButton("自动生成伪装密码", generate),
       (ob.mode === "gecko" || ob.type === "gecko") && XBCreate("div", {className: "grid grid-cols-2 gap-3"}, XBCreate(XBField, {label: "Packet Min", type: "number", value: ob.min_packet_size || 512, onChange: n => setOb("min_packet_size", n)}), XBCreate(XBField, {label: "Packet Max", type: "number", value: ob.max_packet_size || 1200, onChange: n => setOb("max_packet_size", n)}))),
-    XBCheck ? XBCreate("div", {className: "space-y-3 border-t pt-3"}, XBCreate("strong", null, "QUIC 参数"), XBCreate(XBField, {label: "初始包大小", type: "number", value: quic.initial_packet_size || 0, onChange: n => setQuic("initial_packet_size", n)}), XBCreate(XBCheck, {label: "禁用 Path MTU Discovery", checked: !!quic.disable_path_mtu_discovery, onChange: n => setQuic("disable_path_mtu_discovery", n)})) : null,
+    XBCheck ? XBCreate("div", {className: "space-y-3 border-t pt-3"}, XBCreate("strong", null, "QUIC 参数"), XBCreate(XBField, {label: "初始包大小", type: "number", value: quic.initial_packet_size || 0, disabled: xrayBackend, help: xrayBackend ? "Xray 后端不接受 sing-box 的 initial_packet_size，请保持为 0。" : null, onChange: n => setQuic("initial_packet_size", n)}), XBCreate(XBCheck, {label: "禁用 Path MTU Discovery", checked: !!quic.disable_path_mtu_discovery, onChange: n => setQuic("disable_path_mtu_discovery", n)})) : null,
     XBCreate("div", {className: "space-y-3 border-t pt-3"}, XBCreate("strong", null, "传输伪装 / Masquerade"), XBCreate(XBJson, {label: "Masquerade 配置", value: v.masquerade || {}, onChange: n => set("masquerade", n)})));
 }
 function XBNodeProtocol({form, serverType, value, onChange}) {
   const profile = form.watch("backend_profile") || "legacy";
   const settings = value || {};
-  const required = ["mixed", "masque"].includes(serverType);
+  const required = ["mixed", "masque", "hysteria"].includes(serverType);
   H.useEffect(() => {if (required && profile !== "v2bx-extended") form.setValue("backend_profile", "v2bx-extended");}, [serverType, profile]);
   const field = (label, key, extra = {}) => XBCreate(XBField, {key, label, value: settings[key], onChange: v => onChange({...settings, [key]: v}), ...extra});
   const badJson = key => invalid => invalid ? form.setError(key, {type: "validate", message: "JSON 无效"}) : form.clearErrors(key);
   const extended = profile === "v2bx-extended" || required;
   const children = [];
-  if (["http", "mixed", "masque", "vless"].includes(serverType)) children.push(XBCreate(XBField, {key: "backend", label: "节点后端",
+  if (["http", "mixed", "masque", "hysteria", "vless"].includes(serverType)) children.push(XBCreate(XBField, {key: "backend", label: "节点后端",
     value: required ? "v2bx-extended" : profile, disabled: required,
     options: [["legacy", "原有后端"], ["v2bx-extended", "V2bX"]],
     onChange: v => form.setValue("backend_profile", v, {shouldDirty: true})}));

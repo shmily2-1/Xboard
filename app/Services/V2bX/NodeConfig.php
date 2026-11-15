@@ -61,8 +61,8 @@ class NodeConfig
 
     public static function build(Server $node): array
     {
-        if (!in_array($node->type, ['http', 'mixed', 'masque', 'vless'], true)) {
-            self::fail('扩展配置目前适用于 HTTP、Mixed、MASQUE、VLESS');
+        if (!in_array($node->type, ['http', 'mixed', 'masque', 'vless', 'hysteria'], true)) {
+            self::fail('扩展配置目前适用于 HTTP、Mixed、MASQUE、VLESS、Hysteria2');
         }
         $p = $node->protocol_settings;
         if ((float) $node->rate < 0 || (float) $node->rate > 1000) {
@@ -112,6 +112,47 @@ class NodeConfig
                     }
                 }
             }
+        }
+        if ($node->type === 'hysteria') {
+            $version = (int) ($p['version'] ?? 0);
+            if ($version !== 2) {
+                self::fail('V2bX 扩展后端目前只适配 Hysteria2（version=2）');
+            }
+            if ((int) ($p['tls'] ?? 1) !== 1) {
+                self::fail('Hysteria2 必须启用 TLS');
+            }
+            $obfs = $p['obfs'] ?? [];
+            $mode = $obfs['mode'] ?? ($obfs['type'] ?? '');
+            if (!empty($obfs['open'])) {
+                if (!in_array($mode, ['salamander', 'gecko'], true) || empty($obfs['password'])) {
+                    self::fail('Hysteria2 伪装需要 Salamander/Gecko 类型和密码');
+                }
+                if ($mode === 'gecko') {
+                    $min = (int) ($obfs['min_packet_size'] ?? 0);
+                    $max = (int) ($obfs['max_packet_size'] ?? 0);
+                    if ($min < 1 || $max < $min || $max > 2048) {
+                        self::fail('Gecko 分片范围必须在 1 到 2048 之间');
+                    }
+                }
+            } else {
+                $mode = '';
+            }
+            $out += [
+                'version' => 2,
+                'tls_settings' => $p['tls'] ?? [],
+                'up_mbps' => (int) data_get($p, 'bandwidth.up', 0),
+                'down_mbps' => (int) data_get($p, 'bandwidth.down', 0),
+                'obfs' => $mode ?: null,
+                'obfs-password' => $obfs['password'] ?? null,
+                'obfs-mode' => $mode ?: null,
+                'obfs-min-packet-size' => $obfs['min_packet_size'] ?? null,
+                'obfs-max-packet-size' => $obfs['max_packet_size'] ?? null,
+                'quic' => $p['quic'] ?? null,
+                'quic_initial_packet_size' => (int) data_get($p, 'quic.initial_packet_size', 0),
+                'quic_disable_path_mtu_discovery' => (bool) data_get($p, 'quic.disable_path_mtu_discovery', false),
+                'udp_idle_timeout' => (int) ($p['udp_idle_timeout'] ?? 60),
+                'masquerade' => $p['masquerade'] ?? null,
+            ];
         }
         if ($node->route_ids) {
             $out['routes'] = \App\Services\ServerService::getRoutes($node->route_ids);
