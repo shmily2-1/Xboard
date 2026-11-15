@@ -6,7 +6,7 @@
 
 - Xboard 适配提交：`c51f5ec`（包含安装命令指向 `.20` 的修复）
 - V2bX 主分支提交：`b4de78e376bc0096ce1eaf6f4e4e56327834d13e`
-- V2bX 一键安装版本：`v0.1.0-core-upgrade.21`
+- V2bX 一键安装版本：`v0.1.0-core-upgrade.23`
 - Xboard 原版基线：`d826a3b32f73bde24acce2a3ab033c6538ce121d`
 
 ## Xboard 安装与迁移
@@ -32,7 +32,7 @@
 ## V2bX 节点安装
 
 ```sh
-wget -N https://raw.githubusercontent.com/shmily2-1/V2bX-2/v0.1.0-core-upgrade.21/install.sh
+wget -N https://raw.githubusercontent.com/shmily2-1/V2bX-2/v0.1.0-core-upgrade.23/install.sh
 bash install.sh
 ```
 
