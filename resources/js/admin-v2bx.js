@@ -50,6 +50,10 @@ function XBNodeProtocol({form, serverType, value, onChange}) {
     value: required ? "v2bx-extended" : profile, disabled: required,
     options: [["legacy", "原有后端"], ["v2bx-extended", "V2bX"]],
     onChange: v => form.setValue("backend_profile", v, {shouldDirty: true})}));
+  if (["http", "mixed"].includes(serverType)) children.push(XBCreate("div", {key: "mixed-help", className: "rounded-md border bg-muted/20 p-3 text-xs text-muted-foreground"},
+    XBCreate("strong", {className: "block text-foreground"}, "V2bX HTTP/Mixed 参数"),
+    XBCreate("p", {className: "mt-1"}, "账号密码按用户单独生成、轮换和计量，不在节点表单中填写。保存节点后，在原用户管理或订阅卡片中管理连接密码。"),
+    XBCreate("p", {className: "mt-1"}, "本节点表单只配置监听端口和 TLS；Mixed 客户端导出时会映射为 SOCKS 出站。")));
   if (serverType === "masque") {
     children.push(field("隧道地址池（逗号分隔）", "address", {value: (settings.address || []).join(", "),
       onChange: v => onChange({...settings, address: v.split(/[\n,]+/).map(s => s.trim()).filter(Boolean)})}),
@@ -75,6 +79,9 @@ function XBNodeProtocol({form, serverType, value, onChange}) {
         XBCreate(XBJson, {key: "drive", label: "存储凭据、轮询与分段参数", value: drive,
           onChange: v => onChange({...settings, network_settings: v}), onError: badJson("protocol_settings.network_settings")}));
     }
+    if (settings.network && settings.network !== "xdrive") children.push(XBCreate("div", {key: "vless-help", className: "rounded-md border bg-muted/20 p-3 text-xs text-muted-foreground"},
+      XBCreate("strong", {className: "block text-foreground"}, "V2bX VLESS 参数"),
+      XBCreate("p", {className: "mt-1"}, "VLESS Encryption、传输参数和复用设置会随节点配置保存；选择 XDRIVE 后会显示存储、轮询和分段参数。")));
   }
   return XBCreate("div", {className: "space-y-4", "data-native-node-settings": true}, ...children);
 }
