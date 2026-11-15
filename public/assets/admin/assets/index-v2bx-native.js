@@ -170,7 +170,12 @@ function XBEncryptionEditor({value, onChange}) {
   return XBCreate("div", {className: "flex flex-wrap items-center gap-2 border-t pt-3"},
     XBCreate("span", {className: "text-xs text-muted-foreground"}, "VLESS Encryption 参数生成"),
     XBButton("按 Xray 生成成对参数", generateNative, {disabled: busy}),
-    XBButton("本地生成服务端参数", generate, {disabled: busy}));
+    XBButton("本地生成服务端参数", generate, {disabled: busy}),
+    v.enabled && XBCreate("div", {className: "grid w-full gap-3 border-t pt-3 md:grid-cols-3"},
+      XBCreate(XBField, {label: "加密类型", value: v.method || "mlkem768x25519plus", options: [["mlkem768x25519plus", "ML-KEM-768 + X25519"]], onChange: n => update("method", n)}),
+      XBCreate(XBField, {label: "模式", value: v.mode || "native", options: [["native", "native"], ["xorpub", "xorpub"], ["random", "random"]], onChange: n => update("mode", n)}),
+      XBCreate(XBField, {label: "票据有效期", value: v.ticket || "600s", onChange: n => update("ticket", n)}),
+      XBCreate(XBField, {label: "服务端填充（可选）", value: v.server_padding || "", onChange: n => update("server_padding", n)})));
 }
 function XBHysteriaEditor({form, value, onChange}) {
   const v = value || {}, ob = v.obfs || {}, quic = v.quic || {}, profile = form.watch("backend_profile") || "legacy", xrayBackend = profile === "v2bx-extended";
