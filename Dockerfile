@@ -49,14 +49,14 @@ ARG REPO_URL=https://github.com/cedar2025/Xboard
 ARG BRANCH_NAME=master
 ARG USE_LOCAL_SOURCE=0
 
-COPY . /www
+COPY . /source
 
-RUN if [ "${USE_LOCAL_SOURCE}" = "1" ]; then \
-        echo "Using local Xboard source (CACHEBUST: ${CACHEBUST})"; \
+RUN rm -rf ./* ./.git && \
+    if [ "${USE_LOCAL_SOURCE}" = "1" ]; then \
+        echo "Using local Xboard source (CACHEBUST: ${CACHEBUST})" && \
+        cp -a /source/. .; \
     else \
         echo "Attempting to clone branch: ${BRANCH_NAME} from ${REPO_URL} with CACHEBUST: ${CACHEBUST}" && \
-        rm -rf ./* && \
-        rm -rf .git && \
         git config --global --add safe.directory /www && \
         git clone --depth 1 --branch ${BRANCH_NAME} ${REPO_URL} . && \
         git submodule update --init --recursive --force; \
