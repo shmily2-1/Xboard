@@ -111,15 +111,14 @@ function XBNodeProtocol({form, serverType, value, onChange}) {
   const profile = form.watch("backend_profile") || "legacy";
   const settings = value || {};
   const isHysteria = ["hysteria", "hysteria2"].includes(serverType);
-  const required = ["mixed", "masque"].includes(serverType) || isHysteria;
-  H.useEffect(() => {if (required && profile !== "v2bx-extended") form.setValue("backend_profile", "v2bx-extended");}, [serverType, profile]);
+  const v2bxType = ["http", "mixed", "masque", "hysteria", "hysteria2", "vless"].includes(serverType);
+  H.useEffect(() => {if (v2bxType && profile !== "v2bx-extended") form.setValue("backend_profile", "v2bx-extended");}, [serverType, profile, v2bxType]);
   const field = (label, key, extra = {}) => XBCreate(XBField, {key, label, value: settings[key], onChange: v => onChange({...settings, [key]: v}), ...extra});
   const badJson = key => invalid => invalid ? form.setError(key, {type: "validate", message: "JSON 无效"}) : form.clearErrors(key);
   const children = [];
-  if (["http", "mixed", "masque", "hysteria", "hysteria2", "vless"].includes(serverType)) children.push(XBCreate(XBField, {key: "backend", label: "节点后端",
-    value: required ? "v2bx-extended" : profile, disabled: required,
-    options: [["legacy", "原有后端"], ["v2bx-extended", "V2bX"]],
-    onChange: v => form.setValue("backend_profile", v, {shouldDirty: true})}));
+  if (v2bxType) children.push(XBCreate("div", {key: "backend-fixed", className: "rounded-md border bg-muted/20 px-3 py-2 text-xs text-muted-foreground"},
+    XBCreate("span", {className: "font-medium text-foreground"}, "节点后端：V2bX"),
+    XBCreate("span", {className: "ml-2"}, "当前适配节点统一使用 V2bX 后端。")));
   if (["http", "mixed"].includes(serverType)) children.push(XBCreate("div", {key: "mixed-help", className: "rounded-md border bg-muted/20 p-3 text-xs text-muted-foreground"},
     XBCreate("strong", {className: "block text-foreground"}, "V2bX HTTP/Mixed 参数"),
     XBCreate("p", {className: "mt-1"}, "账号密码按用户单独生成、轮换和计量，不在节点表单中填写。保存节点后，在原用户管理或订阅卡片中管理连接密码。"),
