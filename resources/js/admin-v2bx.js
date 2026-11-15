@@ -81,7 +81,19 @@ function XBHysteriaEditor({form, value, onChange}) {
       XBCreate(XBField, {label: "伪装密码", type: "password", value: ob.password || "", onChange: n => setOb("password", n)}), XBButton("自动生成伪装密码", generate),
       (ob.mode === "gecko" || ob.type === "gecko") && XBCreate("div", {className: "grid grid-cols-2 gap-3"}, XBCreate(XBField, {label: "Packet Min", type: "number", value: ob.min_packet_size || 512, onChange: n => setOb("min_packet_size", n)}), XBCreate(XBField, {label: "Packet Max", type: "number", value: ob.max_packet_size || 1200, onChange: n => setOb("max_packet_size", n)}))),
     XBCheck ? XBCreate("div", {className: "space-y-3 border-t pt-3"}, XBCreate("strong", null, "QUIC 参数"), XBCreate(XBField, {label: "初始包大小", type: "number", value: quic.initial_packet_size || 0, disabled: xrayBackend, help: xrayBackend ? "Xray 后端不接受 sing-box 的 initial_packet_size，请保持为 0。" : null, onChange: n => setQuic("initial_packet_size", n)}), XBCreate(XBCheck, {label: "禁用 Path MTU Discovery", checked: !!quic.disable_path_mtu_discovery, onChange: n => setQuic("disable_path_mtu_discovery", n)})) : null,
-    XBCreate("div", {className: "space-y-3 border-t pt-3"}, XBCreate("strong", null, "传输伪装 / Masquerade"), XBCreate(XBJson, {label: "Masquerade 配置", value: v.masquerade || {}, onChange: n => set("masquerade", n)})));
+    XBCreate(XBHysteriaMasqueradeEditor, {value: v.masquerade, onChange: n => set("masquerade", n)}));
+}
+function XBHysteriaMasqueradeEditor({value, onChange}) {
+  const m = value && typeof value === "object" ? value : {}, type = m.type || "";
+  const set = (key, next) => onChange({...m, type, [key]: next});
+  const auto = () => onChange({type: "string", statusCode: 200, content: "<!doctype html><html><head><meta charset=\"utf-8\"><title>Welcome</title></head><body><h1>Welcome</h1><p>It works.</p></body></html>", headers: {"content-type": "text/html; charset=utf-8"}});
+  return XBCreate("div", {className: "space-y-3 border-t pt-3"},
+    XBCreate("div", {className: "flex items-center justify-between"}, XBCreate("strong", null, "传输伪装 / Masquerade"), XBCreate("div", {className: "flex gap-2"}, XBButton("自动生成安全页面", auto), type && XBButton("关闭伪装", () => onChange(null)))),
+    XBCreate(XBField, {label: "伪装方式", value: type || "none", options: [["none", "不启用"], ["proxy", "代理站点（伪装域名）"], ["file", "本地文件目录"], ["string", "自定义页面"]], onChange: next => onChange(next === "none" ? null : {...m, type: next})}),
+    type === "proxy" && XBCreate("div", {className: "space-y-3"}, XBCreate(XBField, {label: "伪装域名 / 代理 URL", value: m.url || "", help: "例如 https://www.example.com/landing", onChange: n => set("url", n)}), XBCreate(XBCheck, {label: "转发时重写 Host", checked: !!m.rewriteHost, onChange: n => set("rewriteHost", n)})),
+    type === "file" && XBCreate(XBField, {label: "本地文件目录", value: m.dir || "", help: "填写节点服务器上的静态网站目录，例如 /var/www/html", onChange: n => set("dir", n)}),
+    type === "string" && XBCreate("div", {className: "space-y-3"}, XBCreate(XBField, {label: "HTTP 状态码", type: "number", value: m.statusCode || 200, onChange: n => set("statusCode", n)}), XBCreate(XBField, {label: "返回页面内容", value: m.content || "", help: "不会发送到订阅用户，只用于 HY2 入口伪装响应", onChange: n => set("content", n)}), XBCreate(XBJson, {label: "响应头（可选）", value: m.headers || {}, onChange: n => set("headers", n)})),
+    XBCreate("p", {className: "text-xs text-muted-foreground"}, "小白可直接点击“自动生成安全页面”；代理站点模式需要填写可访问的 https/http 域名。"));
 }
 function XBRealityGenerator({value, onChange}) {
   const reality = value || {}, [busy, setBusy] = H.useState(false);
@@ -125,7 +137,7 @@ function XBNodeProtocol({form, serverType, value, onChange}) {
         onChange: v => onChange({...settings, alpn: v.split(",")})}),
       XBCreate(XBField, {key: "sni", label: "证书域名", value: settings.tls_settings?.server_name || "",
         onChange: v => onChange({...settings, tls: 1, tls_settings: {...settings.tls_settings, server_name: v}})}));
-  } else {
+  } else if (!isHysteria) {
     children.push(XBCreate(o5t, {key: serverType, serverType: serverType === "mixed" ? "http" : (isHysteria ? "hysteria" : serverType), value, onChange}));
   }
   if (serverType === "vless") {
