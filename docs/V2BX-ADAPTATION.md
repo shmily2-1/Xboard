@@ -32,11 +32,11 @@ php artisan optimize:clear
 - 原后台“节点管理”的添加/编辑弹窗增加 V2bX 后端、Mixed/MASQUE、VLESS/XDRIVE 和相应配置，继续使用原节点列表、权限组、显隐、筛选、修改和删除操作。
 - 原后台不再显示机器服务管理入口；历史机器服务数据不自动删除。
 - 原服务器详情的安装后端可以选择原 xboard-node 或 V2bX；V2bX 选项提供固定版本组件安装命令和私有同步配置下载。安装组件不表示已经启动节点或完成普通代理节点配置。
-- 原用户仪表盘“我的订阅”卡片增加连接配置下载和密码轮换；继续使用原用户登录和会话。
+- 用户仪表盘保持原 Xboard 订阅界面，不新增机器服务、Peer 或专用配置卡片。
 
 没有独立管理站点、额外登录页、悬浮跳转按钮或 iframe。旧 `/<secure_path>/v2bx` 与 `/connections` 地址只跳转回原节点管理和原仪表盘。数据库中的既有服务、凭据、租约和计量数据保留，原 API 兼容路径继续供已部署节点使用。
 
-上游管理端公开仓库仅提供构建产物。本仓库固定其原始版本 `ef5f43da335092cbff8fdf0ad7ff9b4d92d7d0d7`，通过 `scripts/build-admin-native.py` 将可编辑的 `resources/js/admin-v2bx.js` 和 `user-v2bx.js` 编入原 React/Vue 模块，复用原组件、路由、鉴权与样式。生成器校验原始 SHA256 和精确接入位置；上游版本变化时明确失败，不能静默猜测替换。
+上游管理端公开仓库仅提供构建产物。本仓库固定其原始版本 `ef5f43da335092cbff8fdf0ad7ff9b4d92d7d0d7`，通过 `scripts/build-admin-native.py` 将可编辑的 `resources/js/admin-v2bx.js` 编入原管理模块，复用原组件、路由、鉴权与样式。用户端保持原始 Xboard 构建，不注入额外页面。生成器校验原始 SHA256 和精确接入位置；上游版本变化时明确失败，不能静默猜测替换。
 
 生成后的管理端随本仓库保存，不再由原管理端子模块覆盖。运行 `python3 scripts/check-native-build.py` 可离线复现并检查产物，无需新增 npm/Composer 依赖。标准 `php artisan xboard:update` 会按原流程刷新主题资源；自定义用户主题需要在自己的原订阅组件接入相同用户 API。
 

@@ -72,9 +72,6 @@ def main():
         if hashlib.sha256(source).hexdigest() != expected_user:
             raise SystemExit('Original user bundle SHA256 does not match')
         user = source.decode('utf-8')
-        user = replace(user, 'function DN(e,t){', (ROOT / 'resources/js/user-v2bx.js').read_text(encoding='utf-8') + '\nfunction DN(e,t){')
-        user = replace(user, 'return[b.value?(null==(n=b.value)?void 0:n.plan_id)',
-                       'return[Lr(XBUserConnections),b.value?(null==(n=b.value)?void 0:n.plan_id)')
         target_user = args.user_output
         write_text(target_user, user)
         print('Generated native user subscription controls:', hashlib.sha256(target_user.read_bytes()).hexdigest())
