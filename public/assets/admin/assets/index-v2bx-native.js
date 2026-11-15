@@ -158,21 +158,22 @@ function XBJson({label, value, onChange, onError}) {
 }
 function XBRandomText(length = 16) { const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789"; const bytes = crypto.getRandomValues(new Uint8Array(length)); return Array.from(bytes, b => chars[b % chars.length]).join(""); }
 function XBRandomB64URL(bytes = 32) { const raw = crypto.getRandomValues(new Uint8Array(bytes)); let text = ""; for (const b of raw) text += String.fromCharCode(b); return btoa(text).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/g,""); }
-function XBEncryptionEditor({value, tlsSettings, onChange, onTlsChange, onError}) {
-  const v = value || {}; const tls = tlsSettings || {}; const update = (key, next) => onChange({...v, [key]: next, enabled: true});
+function XBEncryptionEditor({value, onChange}) {
+  const v = value || {}; const update = (key, next) => onChange({...v, [key]: next, enabled: true});
   const generate = () => { const privateKey = XBRandomB64URL(32); onChange({...v, enabled: true, method: v.method || "mlkem768x25519plus", mode: v.mode || "random", ticket: v.ticket || "600s", private_key: privateKey, decryption: [v.method || "mlkem768x25519plus", v.mode || "random", v.ticket || "600s", v.server_padding || "", privateKey].filter(Boolean).join(".")}); };
   return XBCreate("div", {className: "space-y-3 rounded-md border bg-muted/20 p-3"},
-    XBCreate("div", {className: "flex items-center justify-between"}, XBCreate("strong", null, "VLESS 协议加密"), XBButton("自动生成密钥", generate)),
-    XBCreate(XBField, {label: "加密方法", value: v.method || "mlkem768x25519plus", options: [["mlkem768x25519plus", "ML-KEM-768 + X25519"]], onChange: n => update("method", n)}),
-    XBCreate(XBField, {label: "模式", value: v.mode || "random", options: [["native", "native"], ["xorpub", "xorpub"], ["random", "random"]], onChange: n => update("mode", n)}),
-    XBCreate(XBField, {label: "票据有效期", value: v.ticket || "600s", onChange: n => update("ticket", n)}),
-    XBCreate(XBField, {label: "服务端填充", value: v.server_padding || "", onChange: n => update("server_padding", n)}),
-    XBCreate(XBField, {label: "服务端私钥/Seed", type: "password", value: v.private_key || "", onChange: n => update("private_key", n)}),
-    XBCreate(XBField, {label: "MLDSA65 Seed", type: "password", value: v.mldsa65_seed || "", onChange: n => update("mldsa65_seed", n)}),
-    XBCreate(XBField, {label: "MLDSA65 Verify", value: tls.mldsa65Verify || "", onChange: n => onTlsChange?.({...tls, mldsa65Verify: n})}),
-    XBCreate(XBField, {label: "MLDSA65 Seed（TLS）", type: "password", value: tls.mldsa65Seed || "", onChange: n => onTlsChange?.({...tls, mldsa65Seed: n})}),
-    XBCreate(XBField, {label: "解密参数", value: v.decryption || "", onChange: n => update("decryption", n)}),
-    XBCreate("p", {className: "text-xs text-muted-foreground"}, "自动生成会生成服务端 X25519 私钥和解密参数；客户端公钥参数仍需按锁定 Xray 客户端生成。"));
+    XBCreate("div", {className: "flex items-center justify-between"}, XBCreate("strong", null, "VLESS Encryption（可选）"), v.enabled && XBButton("自动生成服务端参数", generate)),
+    XBCreate(XBCheck, {label: "启用 VLESS Encryption", checked: !!v.enabled, onChange: n => onChange({...v, enabled: n})}),
+    v.enabled && XBCreate("div", {className: "space-y-3"},
+      XBCreate(XBField, {label: "加密方法", value: v.method || "mlkem768x25519plus", options: [["mlkem768x25519plus", "ML-KEM-768 + X25519"]], onChange: n => update("method", n)}),
+      XBCreate(XBField, {label: "模式", value: v.mode || "random", options: [["native", "native"], ["xorpub", "xorpub"], ["random", "random"]], onChange: n => update("mode", n)}),
+      XBCreate(XBField, {label: "票据有效期", value: v.ticket || "600s", onChange: n => update("ticket", n)}),
+      XBCreate(XBField, {label: "服务端私钥 / Seed", type: "password", value: v.private_key || "", onChange: n => update("private_key", n)}),
+      XBCreate(XBField, {label: "客户端公钥参数", type: "password", value: v.encryption || "", onChange: n => update("encryption", n)}),
+      XBCreate(XBField, {label: "服务端填充（可选）", value: v.server_padding || "", onChange: n => update("server_padding", n)}),
+      XBCreate(XBField, {label: "解密参数（高级）", value: v.decryption || "", onChange: n => update("decryption", n)}),
+      XBCreate("p", {className: "text-xs text-muted-foreground"}, "自动生成会生成服务端私钥和解密参数；MLDSA65 属于 REALITY 参数，不放在 Encryption 中。")),
+    !v.enabled && XBCreate("p", {className: "text-xs text-muted-foreground"}, "关闭时使用普通 VLESS；启用后由 V2bX/Xray 下发 Encryption 配置。"));
 }
 function XBHysteriaEditor({form, value, onChange}) {
   const v = value || {}, ob = v.obfs || {}, quic = v.quic || {}, profile = form.watch("backend_profile") || "legacy", xrayBackend = profile === "v2bx-extended";
@@ -197,13 +198,13 @@ function XBHysteriaEditor({form, value, onChange}) {
 function XBNodeProtocol({form, serverType, value, onChange}) {
   const profile = form.watch("backend_profile") || "legacy";
   const settings = value || {};
-  const required = ["mixed", "masque", "hysteria"].includes(serverType);
+  const isHysteria = ["hysteria", "hysteria2"].includes(serverType);
+  const required = ["mixed", "masque"].includes(serverType) || isHysteria;
   H.useEffect(() => {if (required && profile !== "v2bx-extended") form.setValue("backend_profile", "v2bx-extended");}, [serverType, profile]);
   const field = (label, key, extra = {}) => XBCreate(XBField, {key, label, value: settings[key], onChange: v => onChange({...settings, [key]: v}), ...extra});
   const badJson = key => invalid => invalid ? form.setError(key, {type: "validate", message: "JSON 无效"}) : form.clearErrors(key);
-  const extended = profile === "v2bx-extended" || required;
   const children = [];
-  if (["http", "mixed", "masque", "hysteria", "vless"].includes(serverType)) children.push(XBCreate(XBField, {key: "backend", label: "节点后端",
+  if (["http", "mixed", "masque", "hysteria", "hysteria2", "vless"].includes(serverType)) children.push(XBCreate(XBField, {key: "backend", label: "节点后端",
     value: required ? "v2bx-extended" : profile, disabled: required,
     options: [["legacy", "原有后端"], ["v2bx-extended", "V2bX"]],
     onChange: v => form.setValue("backend_profile", v, {shouldDirty: true})}));
@@ -221,10 +222,10 @@ function XBNodeProtocol({form, serverType, value, onChange}) {
       XBCreate(XBField, {key: "sni", label: "证书域名", value: settings.tls_settings?.server_name || "",
         onChange: v => onChange({...settings, tls: 1, tls_settings: {...settings.tls_settings, server_name: v}})}));
   } else {
-    children.push(XBCreate(o5t, {key: serverType, serverType: serverType === "mixed" ? "http" : serverType, value, onChange}));
+    children.push(XBCreate(o5t, {key: serverType, serverType: serverType === "mixed" ? "http" : (isHysteria ? "hysteria" : serverType), value, onChange}));
   }
-  if (extended && serverType === "vless") {
-    children.push(XBCreate(XBEncryptionEditor, {key: "enc", value: settings.encryption, tlsSettings: settings.tls_settings, onChange: v => onChange({...settings, encryption: v}), onTlsChange: v => onChange({...settings, tls_settings: v}), onError: badJson("protocol_settings.encryption")}));
+  if (serverType === "vless") {
+    children.push(XBCreate(XBEncryptionEditor, {key: "enc", value: settings.encryption, onChange: v => onChange({...settings, encryption: v})}));
     if (settings.network === "xdrive") {
       const drive = settings.network_settings || {};
       const change = (key, v) => onChange({...settings, network_settings: {...drive, [key]: v}});
@@ -235,11 +236,11 @@ function XBNodeProtocol({form, serverType, value, onChange}) {
         XBCreate(XBJson, {key: "drive", label: "存储凭据、轮询与分段参数", value: drive,
           onChange: v => onChange({...settings, network_settings: v}), onError: badJson("protocol_settings.network_settings")}));
     }
-    if (settings.network && settings.network !== "xdrive") children.push(XBCreate("div", {key: "vless-help", className: "rounded-md border bg-muted/20 p-3 text-xs text-muted-foreground"},
-      XBCreate("strong", {className: "block text-foreground"}, "V2bX VLESS 参数"),
-      XBCreate("p", {className: "mt-1"}, "VLESS Encryption、传输参数和复用设置会随节点配置保存；选择 XDRIVE 后会显示存储、轮询和分段参数。")));
+    children.push(XBCreate("div", {key: "vless-help", className: "rounded-md border bg-muted/20 p-3 text-xs text-muted-foreground"},
+      XBCreate("strong", {className: "block text-foreground"}, "VLESS 配置提示"),
+      XBCreate("p", {className: "mt-1"}, profile === "v2bx-extended" ? "当前使用 V2bX 后端，Encryption、传输参数和 XDRIVE 会随节点配置下发。" : "当前使用原有后端；要启用 V2bX 的 Encryption 或 XDRIVE，请将节点后端切换为 V2bX。")));
   }
-  if (serverType === "hysteria") children.push(XBHysteriaEditor({form, value: settings, onChange}));
+  if (isHysteria) children.push(XBHysteriaEditor({form, value: settings, onChange}));
   return XBCreate("div", {className: "space-y-4", "data-native-node-settings": true}, ...children);
 }
 
