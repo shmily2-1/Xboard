@@ -323,11 +323,18 @@ class ServerService
                 ...match ((int) $protocolSettings['version']) {
                         1 => ['obfs' => $protocolSettings['obfs']['password'] ?? null],
                         2 => [
-                            'obfs' => $protocolSettings['obfs']['open'] ? $protocolSettings['obfs']['type'] : null,
+                            'obfs' => $protocolSettings['obfs']['open'] ? ($protocolSettings['obfs']['mode'] ?: $protocolSettings['obfs']['type']) : null,
                             'obfs-password' => $protocolSettings['obfs']['password'] ?? null,
+                            'obfs-mode' => $protocolSettings['obfs']['mode'] ?? $protocolSettings['obfs']['type'] ?? 'salamander',
+                            'obfs-min-packet-size' => $protocolSettings['obfs']['min_packet_size'] ?? null,
+                            'obfs-max-packet-size' => $protocolSettings['obfs']['max_packet_size'] ?? null,
                         ],
                         default => [],
                     },
+                'quic_initial_packet_size' => data_get($protocolSettings, 'quic.initial_packet_size', 0),
+                'quic_disable_path_mtu_discovery' => (bool) data_get($protocolSettings, 'quic.disable_path_mtu_discovery', false),
+                'udp_idle_timeout' => (int) data_get($protocolSettings, 'udp_idle_timeout', 60),
+                'masquerade' => $protocolSettings['masquerade'] ?? null,
             ],
             'tuic' => [
                 ...$baseConfig,

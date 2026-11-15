@@ -72,6 +72,12 @@ class ServerSave extends FormRequest
             'bandwidth.up' => 'nullable|integer',
             'bandwidth.down' => 'nullable|integer',
             'hop_interval' => 'integer|nullable',
+            'obfs.mode' => 'nullable|in:salamander,gecko',
+            'obfs.min_packet_size' => 'nullable|integer|min:64|max:65535',
+            'obfs.max_packet_size' => 'nullable|integer|min:64|max:65535',
+            'quic' => 'nullable|array',
+            'udp_idle_timeout' => 'nullable|integer|min:1|max:86400',
+            'masquerade' => 'nullable|array',
         ],
         'vless' => [
             'tls' => 'required|integer',
@@ -87,6 +93,8 @@ class ServerSave extends FormRequest
             'encryption.ticket' => 'nullable|string|max:64',
             'encryption.server_padding' => 'nullable|string|max:512',
             'encryption.private_key' => 'nullable|string|max:8192',
+            'tls_settings.mldsa65Seed' => 'nullable|string|max:8192',
+            'tls_settings.mldsa65Verify' => 'nullable|string|max:8192',
         ],
         'socks' => [
             'tls' => 'nullable|integer',

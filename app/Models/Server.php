@@ -283,11 +283,17 @@ class Server extends Model
                 'fields' => [
                     'open' => ['type' => 'boolean', 'default' => false],
                     'type' => ['type' => 'string', 'default' => 'salamander'],
+                    'mode' => ['type' => 'string', 'default' => 'salamander'],
                     'password' => ['type' => 'string', 'default' => null]
+                    ,'min_packet_size' => ['type' => 'integer', 'default' => null],
+                    'max_packet_size' => ['type' => 'integer', 'default' => null]
                 ]
             ],
             'tls' => self::TLS_CONFIGURATION,
+            'quic' => ['type' => 'object', 'default' => null],
             'hop_interval' => ['type' => 'integer', 'default' => null]
+            ,'udp_idle_timeout' => ['type' => 'integer', 'default' => 60],
+            'masquerade' => ['type' => 'object', 'default' => null]
         ],
         self::TYPE_TUIC => [
             'version' => ['type' => 'integer', 'default' => 5],
