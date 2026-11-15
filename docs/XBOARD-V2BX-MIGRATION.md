@@ -62,17 +62,7 @@ VLESS Encryption、ML-KEM-768、MLDSA65 和 XDRIVE 仅适用于 Xray 后端；si
 - Gecko 默认分片范围为 `512-1200`，可手动调整。
 - UDP idle timeout、QUIC、Masquerade 继续按节点实际证书和客户端能力填写。
 
-### WireGuard / AmneziaWG
-
-在“服务器管理 → 机器服务 → WireGuard/AmneziaWG → Peer”中：
-
-- 生成客户端密钥后下载私钥；私钥只在当前编辑窗口显示。
-- 可以自动生成预共享密钥。
-- 用户 ID、地址池、监听地址和后端 Profile 仍需填写。
-
-### MTProto
-
-在机器服务编辑器中填写公网主机和监听地址，点击“自动生成 Secret”，保存后等待节点上报运行状态，再下载连接链接。
+机器服务（Tunnel、TUN、WireGuard、AmneziaWG、MTProto）管理入口已停用。本次迁移保留历史数据库记录和节点端旧同步接口，不再提供新建、编辑或面板操作入口。
 
 ## 生成接口
 
@@ -90,11 +80,7 @@ POST /{secure_path}/server/manage/generateNodeKeys
 - `mldsa65`
 - `short_id`
 - `hy2_password`
-- `wireguard_keypair`
-- `wireguard_psk`
-- `mtproto_secret`
-
-其中 `vless_encryption`、`mlkem768`、`mldsa65` 需要面板服务器能执行锁定版本的 Xray。X25519、HY2 密码、WireGuard 密钥、PSK 和 MTProto Secret 可由面板本地生成。
+其中 `vless_encryption`、`mlkem768`、`mldsa65` 需要面板服务器能执行锁定版本的 Xray。X25519 和 HY2 密码可由面板本地生成。
 
 ## 验证命令
 

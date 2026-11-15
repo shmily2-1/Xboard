@@ -180,7 +180,7 @@ function XBDownload(text, filename) {
   const url = URL.createObjectURL(new Blob([text], {type: "application/octet-stream"}));
   const a = document.createElement("a"); a.href = url; a.download = filename; a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
-const XBServiceTypes = [["tunnel", "Tunnel"], ["tun", "TUN"], ["wireguard", "WireGuard"], ["amneziawg", "AmneziaWG"], ["mtproto", "MTProto"]];
+const XBServiceTypes = [];
 function XBMachineInstall({machineId, open, t}) {
   const [backend, setBackend] = H.useState("xboard-node"), [data, setData] = H.useState(null);
   H.useEffect(() => {setData(null);}, [machineId]);

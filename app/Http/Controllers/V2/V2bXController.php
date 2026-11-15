@@ -41,7 +41,7 @@ class V2bXController extends Controller
             'machines' => ServerMachine::get(['id', 'name']),
             'groups' => \App\Models\ServerGroup::get(['id', 'name']),
             'types' => ['http', 'mixed', 'masque', 'vless'],
-            'service_types' => ['tunnel', 'tun', 'wireguard', 'amneziawg', 'mtproto'],
+            'service_types' => [],
         ]);
     }
 
@@ -80,6 +80,7 @@ class V2bXController extends Controller
 
     public function putService(Request $request)
     {
+        abort(410, '机器服务管理已停用');
         $p = $request->validate(['id' => 'nullable|integer', 'machine_id' => 'required|integer|exists:v2_server_machine,id',
             'name' => 'required|string|max:128', 'type' => 'required|in:tunnel,tun,wireguard,amneziawg,mtproto',
             'enabled' => 'required|boolean', 'spec' => 'required|array']);

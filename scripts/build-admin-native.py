@@ -49,8 +49,6 @@ def main():
                    'className:"flex flex-col",style:{height:"min(75vh, calc(90vh - 180px))",minHeight:0},children:')
     text = replace(text, 'if(!l)return void gE.error(e("form.type.select_error"));const t=x.getValues()',
                    'if(!l)return void gE.error(e("form.type.select_error"));if(Object.keys(x.formState.errors).length||!await x.trigger())return;const t=x.getValues()')
-    text = replace(text, 'Q.jsx(M3t,{machineId:e.id,machineName:e.name,open:t,t:i,onNavigate:d})',
-                   'Q.jsxs(Q.Fragment,{children:[Q.jsx(M3t,{machineId:e.id,machineName:e.name,open:t,t:i,onNavigate:d}),Q.jsx(XBMachineServices,{machineId:e.id,open:t})]})')
     text = replace(text, 'Q.jsx(R3t,{machineId:e.id,open:t,t:i})',
                    'Q.jsx(XBMachineInstall,{machineId:e.id,open:t,t:i})')
     # Append into the same ES module: the original root, router, auth and

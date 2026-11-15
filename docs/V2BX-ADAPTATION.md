@@ -10,10 +10,7 @@
 | MASQUE | 地址池、MTU、Host、Path、H2/H3；使用专用 Xray JSON；证书在节点本机配置 |
 | XDRIVE | VLESS 的传输配置；启用 Encryption，清空 flow，关闭 TLS/REALITY，客户端使用 Xray Mux |
 | Xray 密钥生成 | 原节点表单生成 VLESS Encryption、REALITY X25519、MLDSA65、Short ID；面板服务器需配置 `V2BX_XRAY_BIN` |
-| WireGuard | 服务与 Peer 管理、单用户单服务一个 Peer、地址租约、换钥、撤销、计量、配置导出 |
-| AmneziaWG | 独立节点后端 Profile，复用 Peer 管理与配置导出 |
-| MTProto | 每个服务一个 Secret/实例；管理员可导出 Telegram 链接；仅按服务统计 |
-| Tunnel/TUN | 机器服务管理、批量启停、实际应用修订、运行状态和服务计量 |
+| 机器服务 | Tunnel、TUN、WireGuard、AmneziaWG、MTProto 管理入口已停用；历史数据和旧节点同步接口保留，不再提供新建或编辑 |
 
 远端 XDRIVE 配置可以保存并下发给节点，但本版面板不自动将共享远端存储凭据发给订阅用户。`local` 模式须保证客户端和服务端能访问相容的共享存储。远端 S3、Google Drive 和模板后端需单独配置权限隔离并验收。
 
@@ -33,7 +30,7 @@ php artisan optimize:clear
 所有入口沿用原项目：
 
 - 原后台“节点管理”的添加/编辑弹窗增加 V2bX 后端、Mixed/MASQUE、VLESS/XDRIVE 和相应配置，继续使用原节点列表、权限组、显隐、筛选、修改和删除操作。
-- 原后台“服务器管理”的详情抽屉增加“机器服务”，仅列出当前机器的服务；支持添加、编辑、查询、启停、重启、撤销、批量操作及 Peer 管理。
+- 原后台不再显示机器服务管理入口；历史机器服务数据不自动删除。
 - 原服务器详情的安装后端可以选择原 xboard-node 或 V2bX；V2bX 选项提供固定版本组件安装命令和私有同步配置下载。安装组件不表示已经启动节点或完成普通代理节点配置。
 - 原用户仪表盘“我的订阅”卡片增加连接配置下载和密码轮换；继续使用原用户登录和会话。
 
@@ -67,7 +64,7 @@ MASQUE 需要 `address`、`mtu`、`path`、`masque_host`、`alpn` 和 `tls_setti
 
 普通订阅会过滤 MASQUE/XDRIVE，避免输出不完整或被静默降为 TCP 的配置。用户从原“我的订阅”卡片下载匹配锁定 Xray 的完整出站配置，再按客户端要求合并本地入站、DNS 和路由。
 
-## 机器服务同步
+## 旧机器服务同步接口
 
 Python 服务代理 `scripts/v2bx-service-agent.py` 使用 Python 标准库调用 V2bX CLI，轮询原机器资源下的 `/api/v2/server/machine/services/pull`、`ack` 和 `meter`。旧接口只在 404 时回退；认证失败不回退。它与 V2bX 服务进程分别运行，不会再次消费核心的原子流量计数器。
 
@@ -100,7 +97,7 @@ python3 /path/to/Xboard/scripts/v2bx-service-agent.py --config /etc/V2bX/xboard-
 
 `--once` 执行单轮同步。常驻运行可交给现有进程管理器；本扩展不会自行安装系统服务或修改系统路由/NAT。
 
-AmneziaWG/MTProto 的 `backend_profiles` 由节点管理员配置，服务表单只选择 Profile 名称，不能通过面板下发任意可执行命令。Profile 字段为节点 `BackendService` 的本地配置：
+旧机器服务的同步接口和历史配置文件仍保留，供已部署节点完成收尾；面板不再允许新增或编辑这些服务。
 
 - `Executable`：已经取得并审核的本地二进制绝对路径。
 - `SHA256`：该文件的实际 SHA256；代理同步时校验文件。
