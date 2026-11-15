@@ -1,6 +1,6 @@
 # 原 Xboard 页面内的 V2bX 适配
 
-本扩展基于 Xboard `d826a3b32f73bde24acce2a3ab033c6538ce121d`。原节点、用户、套餐、支付与后台资源继续保留。没有新增 Composer 或 npm 依赖。
+本扩展基于 Xboard `d826a3b32f73bde24acce2a3ab033c6538ce121d`。当前适配提交为 `cbfb060071e2dbccc73ebf55cb56bca461b081d8`，配套 V2bX 使用 `v0.1.0-core-upgrade.20`。原节点、用户、套餐、支付与后台资源继续保留。没有新增 Composer 或 npm 依赖。
 
 ## 已接入范围
 
@@ -9,6 +9,7 @@
 | HTTP/Mixed | 新节点选择 `v2bx-extended`，使用 UUID 用户名和独立连接密码；支持普通订阅及专用 Xray JSON |
 | MASQUE | 地址池、MTU、Host、Path、H2/H3；使用专用 Xray JSON；证书在节点本机配置 |
 | XDRIVE | VLESS 的传输配置；启用 Encryption，清空 flow，关闭 TLS/REALITY，客户端使用 Xray Mux |
+| Xray 密钥生成 | 原节点表单生成 VLESS Encryption、REALITY X25519、MLDSA65、Short ID；面板服务器需配置 `V2BX_XRAY_BIN` |
 | WireGuard | 服务与 Peer 管理、单用户单服务一个 Peer、地址租约、换钥、撤销、计量、配置导出 |
 | AmneziaWG | 独立节点后端 Profile，复用 Peer 管理与配置导出 |
 | MTProto | 每个服务一个 Secret/实例；管理员可导出 Telegram 链接；仅按服务统计 |
@@ -70,7 +71,7 @@ MASQUE 需要 `address`、`mtu`、`path`、`masque_host`、`alpn` 和 `tls_setti
 
 Python 服务代理 `scripts/v2bx-service-agent.py` 使用 Python 标准库调用 V2bX CLI，轮询原机器资源下的 `/api/v2/server/machine/services/pull`、`ack` 和 `meter`。旧接口只在 404 时回退；认证失败不回退。它与 V2bX 服务进程分别运行，不会再次消费核心的原子流量计数器。
 
-V2bX `.18` 的一键安装包已包含相同组件，可直接运行 `v2bx panel-agent --config /etc/V2bX/xboard-agent.json`。代理配置中的 `v2bx` 指向真实二进制 `/usr/local/V2bX/V2bX`，不能指向管理菜单别名。
+V2bX `.20` 的一键安装包已包含相同组件，可直接运行 `v2bx panel-agent --config /etc/V2bX/xboard-agent.json`。代理配置中的 `v2bx` 指向真实二进制 `/usr/local/V2bX/V2bX`，不能指向管理菜单别名。
 
 节点主配置中明确设置 `LocalServiceDir`。代理仅管理 `xb-<服务ID>` 命名空间；原本手工管理的服务不会按面板列表自动删除。
 
