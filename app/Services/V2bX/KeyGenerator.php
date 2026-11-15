@@ -8,7 +8,7 @@ class KeyGenerator
 {
     public static function generate(string $kind, string $core = 'xray'): array
     {
-        if (!in_array($kind, ['x25519', 'vless_encryption', 'mlkem768', 'mldsa65', 'short_id', 'hy2_password', 'wireguard_psk'], true)) {
+        if (!in_array($kind, ['x25519', 'vless_encryption', 'mlkem768', 'mldsa65', 'short_id', 'hy2_password', 'wireguard_psk', 'wireguard_keypair', 'mtproto_secret'], true)) {
             throw new RuntimeException('不支持的生成类型');
         }
 
@@ -21,6 +21,8 @@ class KeyGenerator
             'short_id' => ['short_id' => bin2hex(random_bytes(8))],
             'hy2_password' => ['password' => self::randomText(24)],
             'wireguard_psk' => ['preshared_key' => base64_encode(random_bytes(32))],
+            'wireguard_keypair' => self::wireguardKeypair(),
+            'mtproto_secret' => ['secret' => 'ee' . bin2hex(random_bytes(16)) . '00'],
             'vless_encryption', 'mlkem768', 'mldsa65' => self::xray($kind),
         };
     }
@@ -31,6 +33,15 @@ class KeyGenerator
         return [
             'private_key' => self::b64url($private),
             'public_key' => self::b64url(sodium_crypto_scalarmult_base($private)),
+        ];
+    }
+
+    private static function wireguardKeypair(): array
+    {
+        $private = random_bytes(SODIUM_CRYPTO_BOX_SECRETKEYBYTES);
+        return [
+            'private_key' => base64_encode($private),
+            'public_key' => base64_encode(sodium_crypto_scalarmult_base($private)),
         ];
     }
 

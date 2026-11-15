@@ -66,14 +66,15 @@ function XBHysteriaEditor({form, value, onChange}) {
   const v = value || {}, ob = v.obfs || {}, quic = v.quic || {}, profile = form.watch("backend_profile") || "legacy", xrayBackend = profile === "v2bx-extended";
   const set = (key, next) => onChange({...v, [key]: next});
   const setOb = (key, next) => onChange({...v, obfs: {...ob, [key]: next}});
-  const setObMode = next => onChange({...v, obfs: {...ob, open: true, type: next, mode: next}});
+  const setObMode = next => onChange({...v, obfs: {...ob, open: true, type: next, mode: next,
+    ...(next === "gecko" ? {min_packet_size: ob.min_packet_size || 512, max_packet_size: ob.max_packet_size || 1200} : {})}});
   const setQuic = (key, next) => onChange({...v, quic: {...quic, [key]: next}});
   const generate = () => setOb("password", XBRandomText(18));
   return XBCreate("div", {className: "space-y-4 rounded-md border bg-muted/20 p-3"},
     XBCreate("strong", null, "Hysteria2 传输与伪装"),
     XBCreate(XBField, {label: "版本", value: v.version || 2, type: "number", disabled: true, onChange: n => set("version", n)}),
     XBCreate(XBField, {label: "UDP 空闲超时（秒）", value: v.udp_idle_timeout || 60, type: "number", onChange: n => set("udp_idle_timeout", n)}),
-    XBCreate(XBCheck, {label: "启用 UDP 伪装", checked: !!ob.open, onChange: n => setOb("open", n)}),
+    XBCreate(XBCheck, {label: "启用 UDP 伪装", checked: !!ob.open, onChange: n => onChange({...v, obfs: {...ob, open: n, type: ob.type || "salamander", mode: ob.mode || "salamander"}})}),
     ob.open && XBCreate("div", {className: "space-y-3"},
       XBCreate(XBField, {label: "伪装类型", value: ob.type || "salamander", options: [["salamander", "Salamander (Hysteria2)"], ["gecko", "Gecko experimental"]], onChange: setObMode}),
       XBCreate(XBField, {label: "模式", value: ob.mode || ob.type || "salamander", options: [["salamander", "Salamander"], ["gecko", "Gecko experimental"]], onChange: setObMode}),
@@ -219,7 +220,7 @@ function XBServiceEditor({machineId, service, onSaved, onClose}) {
   }
   if (["amneziawg", "mtproto"].includes(form.type)) fields.push(input("节点本机后端名称", "BackendProfile"));
   if (form.type === "amneziawg") fields.push(XBCreate(XBJson, {key: "obfs", label: "混淆参数", value: spec.Obfuscation, onChange: v => set("Obfuscation", v), onError: setJsonError}));
-  if (form.type === "mtproto") fields.push(input("公网主机", "PublicIP"), XBCreate(XBField, {key: "secret", type: "password", label: "连接 Secret", value: spec.Secret, onChange: v => set("Secret", v)}));
+  if (form.type === "mtproto") fields.push(input("公网主机", "PublicIP"), XBCreate("div", {className: "space-y-2"}, XBCreate(XBField, {key: "secret", type: "password", label: "连接 Secret", value: spec.Secret, onChange: v => set("Secret", v)}), XBButton("自动生成 Secret", () => XBRun(async () => {const response = await RL(OL() + "/server/manage/generateNodeKeys", {kind: "mtproto_secret", core: "sing-box"}); const data = response?.data || response; set("Secret", data.secret); gE.success("Secret 已生成");}))));
   if (form.type === "mtproto") fields.push(XBCreate(XBField, {key: "concurrency", label: "并发连接数（可选）", type: "number", value: spec.Concurrency,
     onChange: v => set("Concurrency", v === "" ? undefined : v)}));
   const save = () => XBRun(async () => {setBusy(true); try {
@@ -232,10 +233,12 @@ function XBServiceEditor({machineId, service, onSaved, onClose}) {
     XBCreate(ftt, null, XBButton("取消", onClose), XBButton(busy ? "保存中…" : "保存", save, {disabled: busy || jsonError}))));
 }
 function XBPeerManager({service, onReload, onClose}) {
-  const blank = {user_id: "", public_key: "", preshared_key: "", clear_psk: false, keepalive: 25, enabled: true};
+  const blank = {user_id: "", private_key: "", public_key: "", preshared_key: "", clear_psk: false, keepalive: 25, enabled: true};
   const [peer, setPeer] = H.useState(blank), [busy, setBusy] = H.useState(false);
   const rows = (service.peers || []).filter(p => !p.retired);
   const edit = (key, value) => setPeer(p => ({...p, [key]: value}));
+  const generateKeys = () => XBRun(async () => {const response = await RL(OL() + "/server/manage/generateNodeKeys", {kind: "wireguard_keypair", core: "sing-box"}); const data = response?.data || response; setPeer(p => ({...p, private_key: data.private_key, public_key: data.public_key})); gE.success("客户端密钥已生成");});
+  const generatePsk = () => XBRun(async () => {const response = await RL(OL() + "/server/manage/generateNodeKeys", {kind: "wireguard_psk", core: "sing-box"}); const data = response?.data || response; edit("preshared_key", data.preshared_key); gE.success("预共享密钥已生成");});
   const submit = () => XBRun(async () => {setBusy(true); try {
     const data = {service_id: service.id, user_id: Number(peer.user_id), public_key: peer.public_key, keepalive: Number(peer.keepalive), enabled: peer.enabled};
     if (peer.clear_psk) data.preshared_key = null;
@@ -255,10 +258,11 @@ function XBPeerManager({service, onReload, onClose}) {
           XBButton(p.enabled ? "停用" : "启用", () => XBRun(async () => {await RL(XBMachineBase + "/peers/save", {service_id: service.id, user_id: p.user_id, public_key: p.public_key, keepalive: p.keepalive, enabled: !p.enabled}); await onReload();})),
           XBButton("撤销", () => XBRun(async () => {await RL(XBMachineBase + "/peers/remove", {id: p.id}); await onReload();}), {variant: "destructive"})));
     })) : XBCreate("p", {className: "py-4 text-sm text-muted-foreground"}, "尚未分配 Peer"),
-    XBCreate("div", {className: "space-y-3 border-t pt-4"}, XBButton("新增 Peer", () => setPeer(blank)),
+    XBCreate("div", {className: "space-y-3 border-t pt-4"}, XBButton("新增 Peer", () => setPeer(blank)), XBButton("生成客户端密钥", generateKeys),
       XBCreate(XBField, {label: "用户 ID", type: "number", value: peer.user_id, onChange: v => edit("user_id", v)}),
+      peer.private_key && XBCreate("div", {className: "space-y-2"}, XBCreate(XBField, {label: "客户端私钥（仅本次显示）", type: "password", value: peer.private_key, onChange: v => edit("private_key", v)}), XBButton("下载客户端私钥", () => XBDownload(peer.private_key + "\n", "wireguard-private-key.txt"))),
       XBCreate(XBField, {label: "客户端公钥", value: peer.public_key, onChange: v => edit("public_key", v)}),
-      XBCreate(XBField, {label: "预共享密钥（留空保留）", type: "password", value: peer.preshared_key, onChange: v => edit("preshared_key", v)}),
+      XBCreate("div", {className: "space-y-2"}, XBCreate(XBField, {label: "预共享密钥（留空保留）", type: "password", value: peer.preshared_key, onChange: v => edit("preshared_key", v)}), XBButton("自动生成预共享密钥", generatePsk)),
       XBCreate(XBCheck, {label: "清除预共享密钥", checked: peer.clear_psk, onChange: v => edit("clear_psk", v)}),
       XBCreate(XBField, {label: "保活间隔", type: "number", value: peer.keepalive, onChange: v => edit("keepalive", v)}),
       XBCreate(XBCheck, {label: "启用 Peer", checked: peer.enabled, onChange: v => edit("enabled", v)})),

@@ -343,7 +343,7 @@ class ManageController extends Controller
     public function generateNodeKeys(Request $request)
     {
         $data = $request->validate([
-            'kind' => 'required|in:x25519,vless_encryption,mlkem768,mldsa65,short_id,hy2_password,wireguard_psk',
+            'kind' => 'required|in:x25519,vless_encryption,mlkem768,mldsa65,short_id,hy2_password,wireguard_psk,wireguard_keypair,mtproto_secret',
             'core' => 'nullable|in:xray,sing-box',
         ]);
         return $this->success(KeyGenerator::generate($data['kind'], $data['core'] ?? 'xray'));
