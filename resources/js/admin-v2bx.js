@@ -152,7 +152,12 @@ function XBNodeProtocol({form, serverType, value, onChange}) {
       XBCreate("strong", {className: "block text-foreground"}, "VLESS 配置提示"),
       XBCreate("p", {className: "mt-1"}, profile === "v2bx-extended" ? "当前使用 V2bX 后端，Encryption、传输参数和 XDRIVE 会随节点配置下发。" : "当前使用原有后端；要启用 V2bX 的 Encryption 或 XDRIVE，请将节点后端切换为 V2bX。")));
   }
-  if (isHysteria) children.push(XBHysteriaEditor({form, value: settings, onChange}));
+  if (isHysteria) {
+    children.push(XBCreate(XBField, {key: "hysteria-sni", label: "证书域名（SNI）", value: settings.tls?.server_name || "",
+      help: "填写节点证书对应的域名；留空时使用节点地址。伪装站点在下方单独设置。",
+      onChange: v => onChange({...settings, tls: {...(settings.tls || {}), server_name: v}})}));
+    children.push(XBHysteriaEditor({form, value: settings, onChange}));
+  }
   return XBCreate("div", {className: "space-y-4", "data-native-node-settings": true}, ...children);
 }
 

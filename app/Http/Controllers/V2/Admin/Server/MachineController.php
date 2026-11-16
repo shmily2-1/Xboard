@@ -124,7 +124,7 @@ class MachineController extends Controller
 
         if (($params['backend'] ?? '') === 'v2bx') {
             return $this->success([
-                'command' => 'wget -N https://raw.githubusercontent.com/shmily2-1/V2bX-2/v0.1.0-core-upgrade.23/install.sh && bash install.sh --non-interactive',
+                'command' => 'wget -N https://raw.githubusercontent.com/shmily2-1/V2bX-2/v0.1.0-core-upgrade.26/install.sh && bash install.sh --non-interactive',
                 'agent_config' => [
                     'panel' => $request->getSchemeAndHttpHost(), 'machine_id' => $machine->id, 'token' => $machine->token,
                     'state_dir' => '/var/lib/V2bX/xboard-agent', 'v2bx' => '/usr/local/V2bX/V2bX',

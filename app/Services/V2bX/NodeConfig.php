@@ -59,6 +59,28 @@ class NodeConfig
         ]];
     }
 
+    public static function portHopping(Server $node): array
+    {
+        $port = trim((string) $node->port);
+        if (!preg_match('/^([0-9]{1,5})(?:-([0-9]{1,5}))?$/D', $port, $matches)) {
+            self::fail('Hysteria2 连接端口应为单个端口或起始-结束范围');
+        }
+        $first = (int) $matches[1];
+        $last = isset($matches[2]) ? (int) $matches[2] : $first;
+        if ($first < 1 || $last > 65535 || $first > $last) {
+            self::fail('Hysteria2 连接端口范围必须在 1 到 65535 之间且由小到大');
+        }
+        $interval = data_get($node->protocol_settings, 'hop_interval');
+        if ($interval !== null && (!is_numeric($interval) || (int) $interval != $interval
+            || ((int) $interval !== 0 && (int) $interval < 5))) {
+            self::fail('Hysteria2 跳跃间隔应为至少 5 秒，留空或 0 使用客户端默认值');
+        }
+        return [
+            'ports' => isset($matches[2]) ? "{$first}-{$last}" : null,
+            'hop_interval' => $interval === null ? null : (int) $interval,
+        ];
+    }
+
     public static function build(Server $node): array
     {
         if (!in_array($node->type, ['http', 'mixed', 'masque', 'vless', 'hysteria'], true)) {
@@ -144,8 +166,11 @@ class NodeConfig
             } else {
                 $mode = '';
             }
+            $out['tls'] = 1;
+            $out['server_name'] = data_get($p, 'tls.server_name') ?: $node->host;
             $out += [
                 'version' => 2,
+                ...self::portHopping($node),
                 'tls_settings' => $p['tls'] ?? [],
                 'up_mbps' => (int) data_get($p, 'bandwidth.up', 0),
                 'down_mbps' => (int) data_get($p, 'bandwidth.down', 0),

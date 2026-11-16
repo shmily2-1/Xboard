@@ -323,6 +323,7 @@ class ServerService
                 ...match ((int) $protocolSettings['version']) {
                         1 => ['obfs' => $protocolSettings['obfs']['password'] ?? null],
                         2 => [
+                            ...\App\Services\V2bX\NodeConfig::portHopping($node),
                             'obfs' => $protocolSettings['obfs']['open'] ? ($protocolSettings['obfs']['mode'] ?: $protocolSettings['obfs']['type']) : null,
                             'obfs-password' => $protocolSettings['obfs']['password'] ?? null,
                             'obfs-mode' => $protocolSettings['obfs']['mode'] ?? $protocolSettings['obfs']['type'] ?? 'salamander',

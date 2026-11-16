@@ -4,9 +4,9 @@
 
 ## 固定版本
 
-- Xboard 适配提交：`c51f5ec`（包含安装命令指向 `.20` 的修复）
-- V2bX 主分支提交：`b4de78e376bc0096ce1eaf6f4e4e56327834d13e`
-- V2bX 一键安装版本：`v0.1.0-core-upgrade.23`
+- Xboard：使用包含 2026-11-17 Hysteria2 端口跳跃修复的本仓库版本
+- V2bX：使用下列固定 Release；旧版本是否支持所有参数，以对应版本说明为准
+- V2bX 一键安装版本：`v0.1.0-core-upgrade.26`
 - Xboard 原版基线：`d826a3b32f73bde24acce2a3ab033c6538ce121d`
 
 ## Xboard 安装与迁移
@@ -32,7 +32,7 @@
 ## V2bX 节点安装
 
 ```sh
-wget -N https://raw.githubusercontent.com/shmily2-1/V2bX-2/v0.1.0-core-upgrade.23/install.sh
+wget -N https://raw.githubusercontent.com/shmily2-1/V2bX-2/v0.1.0-core-upgrade.26/install.sh
 bash install.sh
 ```
 
@@ -58,6 +58,8 @@ VLESS Encryption、ML-KEM-768、MLDSA65 和 XDRIVE 仅适用于 Xray 后端；si
 ### Hysteria2
 
 - 选择 Hysteria/Hysteria2 后端时会进入 V2bX HY2 配置。
+- 证书域名保存到 `protocol_settings.tls.server_name`，与伪装站点分开配置。
+- 连接端口范围会随 API 下发为 `ports`，后端服务端口仍是单个监听端口；节点自动维护 UDP 转发。
 - Salamander/Gecko 密码可以自动生成。
 - Gecko 默认分片范围为 `512-1200`，可手动调整。
 - UDP idle timeout、QUIC、Masquerade 继续按节点实际证书和客户端能力填写。

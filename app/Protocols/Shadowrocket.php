@@ -388,6 +388,9 @@ class Shadowrocket extends AbstractProtocol
                     $params['downmbps'] = $downMbps;
                 }
                 if ($serverName = data_get($protocol_settings, 'tls.server_name')) {
+                    // `sni` is the canonical Hysteria2 URI parameter. Keep
+                    // `peer` as an alias for older Shadowrocket versions.
+                    $params['sni'] = $serverName;
                     $params['peer'] = $serverName;
                 }
                 if (data_get($protocol_settings, 'obfs.open')) {

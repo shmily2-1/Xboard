@@ -1,6 +1,16 @@
 # 原 Xboard 页面内的 V2bX 适配
 
-本扩展基于 Xboard `d826a3b32f73bde24acce2a3ab033c6538ce121d`。当前适配提交为 `cbfb060071e2dbccc73ebf55cb56bca461b081d8`，配套 V2bX 使用 `v0.1.0-core-upgrade.20`。原节点、用户、套餐、支付与后台资源继续保留。没有新增 Composer 或 npm 依赖。
+本扩展基于 Xboard `d826a3b32f73bde24acce2a3ab033c6538ce121d`，配套 V2bX 使用 `v0.1.0-core-upgrade.26`。原节点、用户、套餐、支付与后台资源继续保留。没有新增 Composer 或 npm 依赖。
+
+### Hysteria2 连接修复（2026-11-17）
+
+原节点表单新增证书域名，保存为 `protocol_settings.tls.server_name`，供节点 API 与客户端订阅共用。伪装站点仍单独保存为 `protocol_settings.masquerade`；V2bX 在线配置会直接读取，不再重复输入。
+
+原有和 V2bX 扩展后端都会将节点自身的 `port` 范围下发为 `ports`，并下发 `hop_interval`，保留 `server_port` 为固定 UDP 监听端口。单端口下发 `ports:null`，不创建范围转发。节点组中有父节点时仍使用当前节点自己的公网范围。修复前订阅已经在随机选端口，但节点 API 缺少范围，导致只有固定端口可用。
+
+更新面板后按实际运行方式清理缓存并重载 PHP/Octane，再升级节点到 `.26`。核对 `/api/v1/server/UniProxy/config` 的 `ports` 与订阅范围一致，并使用真实客户端验证认证和 HTTPS 转发。无需数据库迁移或重新申请已有证书。已临时添加的手工转发规则可在正式规则验证通过后撤下。
+
+离线回归：`php scripts/test-hysteria-config.php`，使用已安装的锁定 Composer 依赖，不连接数据库或生产面板。
 
 ## 已接入范围
 
