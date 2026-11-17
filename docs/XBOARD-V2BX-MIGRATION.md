@@ -6,7 +6,7 @@
 
 - Xboard：使用包含 2026-11-17 Hysteria2 端口跳跃修复的本仓库版本
 - V2bX：使用下列固定 Release；旧版本是否支持所有参数，以对应版本说明为准
-- V2bX 一键安装版本：`v0.1.0-core-upgrade.27`
+- V2bX 一键安装版本：`v0.1.0-core-upgrade.28`
 - Xboard 原版基线：`d826a3b32f73bde24acce2a3ab033c6538ce121d`
 
 ## Xboard 安装与迁移
@@ -32,7 +32,7 @@
 ## V2bX 节点安装
 
 ```sh
-wget -N https://raw.githubusercontent.com/shmily2-1/V2bX-2/v0.1.0-core-upgrade.27/install.sh
+wget -N https://raw.githubusercontent.com/shmily2-1/V2bX-2/v0.1.0-core-upgrade.28/install.sh
 bash install.sh
 ```
 
