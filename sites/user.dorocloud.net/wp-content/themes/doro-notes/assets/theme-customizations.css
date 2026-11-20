@@ -1,0 +1,271 @@
+/* Keep adjustments local to plans and authentication branding. */
+.wp-block-doro-plan-grid.card-container { align-items: start; }
+.wp-block-doro-plan-grid .card-item { min-width: 0; display: block; }
+.wp-block-doro-plan-grid .wp-block-doro-plan-card { width: 100%; height: auto; min-width: 0; }
+.wp-block-doro-plan-card > .n-card-header { padding: 16px 20px; }
+.wp-block-doro-plan-card > .n-card-header > .n-card-header__main {
+  min-width: 0; width: 100%; font-size: 18px; font-weight: 400; line-height: 1.5; overflow-wrap: anywhere;
+}
+.wp-block-doro-plan-card > .n-card__content { padding: 0; }
+.wp-block-doro-plan-price-band { padding: 28px 20px; background: #e9ecef; color: #17191c; }
+.wp-block-doro-plan-amount { font-size: 36px; font-weight: 600; line-height: 1.2; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.wp-block-doro-plan-cycle { margin-top: 8px; font-size: 14px; font-weight: 600; line-height: 1.5; color: #68717a; }
+.wp-block-doro-plan-description { padding: 16px 20px 0; }
+.wp-block-doro-plan-card > .n-card__action { padding: 8px 20px 16px; background: transparent; border-top: 0; }
+.wp-block-doro-plan-card > .n-card__action .n-button { min-height: 32px; }
+.markdown-body.wp-block-doro-plan-content {
+  min-width: 0; max-width: 100%; color: inherit; background: transparent; overflow-wrap: anywhere;
+}
+.wp-block-doro-plan-content img { max-width: 100%; height: auto; }
+.wp-block-doro-plan-content pre { white-space: pre-wrap; overflow-wrap: anywhere; }
+.wp-block-doro-plan-content table { max-width: 100%; overflow-x: auto; }
+.wp-block-doro-plan-content .ny-pack { width: 100%; min-width: 0; line-height: 1.5; font-family: "PingFang SC", "Microsoft YaHei", sans-serif; color: #222; }
+.wp-block-doro-plan-content .ny-tag {
+  display: inline-flex; align-items: center; gap: 6px; max-width: 100%; padding: 6px 10px; margin-bottom: 12px;
+  border-radius: 999px; font-size: 13px; line-height: 1.5; font-weight: 700; color: #fff;
+  background: linear-gradient(135deg, #ff3366, #ffcc00);
+  /* Keep the rocket in the original "套餐核心权益" label visible on systems
+     whose CJK webfont does not contain emoji glyphs. */
+  font-family: "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji", "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-variant-emoji: emoji;
+}
+.wp-block-doro-plan-content .ny-list { display: block; width: 100%; padding: 0; margin: 0; list-style: none; }
+.wp-block-doro-plan-content .ny-list > li { position: relative; padding-left: 26px; margin: 10px 0; font-size: 14px; line-height: 1.55; }
+.wp-block-doro-plan-content .ny-list > li::before {
+  content: ''; position: absolute; left: 0; top: 2px; width: 18px; height: 18px;
+  border-radius: 50%; background: #22c55e;
+}
+.wp-block-doro-plan-content .ny-list > li::after {
+  content: ''; position: absolute; left: 6px; top: 5px; width: 5px; height: 9px;
+  border: solid white; border-width: 0 2px 2px 0; transform: rotate(45deg);
+}
+.wp-block-doro-plan-content .ny-em, .wp-block-doro-plan-content .ny-price, .wp-block-doro-plan-content .ny-note b { color: #ff3366; font-weight: 800; }
+.wp-block-doro-plan-content .ny-pricebox {
+  padding: 12px; margin: 10px 0 14px; border: 1px dashed #ff3366;
+  border-radius: 12px; text-align: center; background: #fff7f9;
+}
+.wp-block-doro-plan-content .ny-desc { font-size: 14px; font-weight: 700; color: #333; margin-bottom: 6px; }
+.wp-block-doro-plan-content .ny-price { font-size: 40px; font-weight: 900; line-height: 1; margin: 2px 0 6px; }
+.wp-block-doro-plan-content .ny-note { font-size: 13px; color: #666; }
+html.dark .wp-block-doro-plan-price-band { background: #252a32; color: #f3f4f6; }
+html.dark .wp-block-doro-plan-cycle { color: #b8c0cc; }
+html.dark .wp-block-doro-plan-content .ny-pack { color: #e5e7eb; }
+html.dark .wp-block-doro-plan-content .ny-desc { color: #e5e7eb; }
+html.dark .wp-block-doro-plan-content .ny-note { color: #c8cbd1; }
+html.dark .wp-block-doro-plan-content .ny-pricebox { background: #341925; border-color: #9f526c; }
+html.dark .wp-block-doro-plan-content .ny-em, html.dark .wp-block-doro-plan-content .ny-price,
+html.dark .wp-block-doro-plan-content .ny-note b { color: #fda4af; }
+.wp-block-doro-login-page.wh-full { min-height: 100%; min-height: 100dvh; height: auto; padding: 24px 16px; box-sizing: border-box; }
+.wp-block-doro-login-page > .n-card { width: 100%; flex-shrink: 0; }
+/* Original global heading/link colors are light-only; inherit the dark card tokens. */
+html.dark .wp-block-doro-login-page h1 { color: var(--n-title-text-color, rgba(255, 255, 255, .9)); }
+html.dark .wp-block-doro-login-page .text-muted,
+html.dark .wp-block-doro-login-page .n-card a { color: var(--n-text-color, rgba(255, 255, 255, .82)); }
+.wp-block-doro-login-page .wp-block-doro-login-logo { max-width: 220px; max-height: 80px; object-fit: contain; }
+.wp-block-doro-sidebar-logo { max-width: 160px; object-fit: contain; }
+.wp-block-doro-sidebar-site-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@media (max-width: 420px) {
+  .wp-block-doro-plan-card > .n-card-header, .wp-block-doro-plan-description, .wp-block-doro-plan-price-band,
+  .wp-block-doro-plan-card > .n-card__action { padding-left: 16px; padding-right: 16px; }
+  .wp-block-doro-plan-price-band { padding-top: 22px; padding-bottom: 22px; }
+  .wp-block-doro-login-page .wp-block-doro-login-logo { max-width: 180px; max-height: 64px; }
+}
+
+/* Reviewed autumn campaign styles; never execute style tags from plan HTML. */
+
+.wp-block-doro-plan-content .zq-pack{
+  --zq-ink:#1d2a45;
+  --zq-ink-deep:#111b32;
+  --zq-gold:#d6a34b;
+  --zq-gold-soft:#f2d58c;
+  --zq-red:#a6403e;
+  width:100%!important;
+  max-width:100%!important;
+  min-width:0!important;
+  box-sizing:border-box!important;
+  position:relative;
+  overflow:hidden;
+  padding:16px;
+  border:1px solid #ead6a9;
+  border-radius:18px;
+  background:radial-gradient(circle at 94% 8%,rgba(242,213,140,.35) 0 25px,transparent 26px),linear-gradient(180deg,#fffdf8 0%,#fff7e8 100%);
+  box-shadow:0 12px 28px rgba(55,43,26,.10);
+  font-family:"PingFang SC","Microsoft YaHei",sans-serif;
+  color:var(--zq-ink);
+  display:block!important;
+}
+
+.wp-block-doro-plan-content .zq-pack,.wp-block-doro-plan-content .zq-pack *{
+  box-sizing:border-box!important;
+  writing-mode:horizontal-tb!important;
+  text-orientation:mixed!important;
+  word-break:normal!important;
+  overflow-wrap:break-word!important;
+}
+
+.wp-block-doro-plan-content .zq-tag{
+  display:flex!important;
+  align-items:center;
+  gap:8px;
+  width:max-content;
+  max-width:100%;
+  padding:7px 12px;
+  margin:0 0 14px 0!important;
+  border-radius:999px;
+  color:#fff8df!important;
+  background:linear-gradient(135deg,#111b32 0%,#2d446a 68%,#a97832 150%);
+  box-shadow:0 6px 14px rgba(24,38,66,.16);
+  font-size:13px;
+  font-weight:800;
+  line-height:1.4;
+}
+
+.wp-block-doro-plan-content .zq-moon{
+  display:inline-block!important;
+  width:14px;
+  height:14px;
+  min-width:14px;
+  border:2px solid #f2d58c;
+  border-right-color:transparent;
+  border-radius:50%;
+  transform:rotate(-35deg);
+}
+
+.wp-block-doro-plan-content .zq-pricebox{
+  width:100%;
+  margin:10px 0 15px!important;
+  padding:15px 12px 16px;
+  border:1px solid #ecd6a4;
+  border-top:3px solid #d6a34b;
+  border-radius:14px;
+  background:rgba(255,253,247,.94);
+  text-align:center;
+}
+
+.wp-block-doro-plan-content .zq-desc{
+  margin:0 0 7px!important;
+  color:#4b4032!important;
+  font-size:14px;
+  font-weight:700;
+  line-height:1.5;
+}
+
+.wp-block-doro-plan-content .zq-price{
+  margin:3px 0 8px!important;
+  color:#a6403e!important;
+  font-size:42px;
+  font-weight:900;
+  line-height:1;
+}
+
+.wp-block-doro-plan-content .zq-note{
+  margin:0!important;
+  color:#706657!important;
+  font-size:13px;
+  line-height:1.6;
+}
+
+.wp-block-doro-plan-content .zq-note strong{
+  color:#a6403e!important;
+  font-weight:900;
+}
+
+.wp-block-doro-plan-content .zq-coupon{
+  margin-top:11px!important;
+  color:#706657!important;
+  font-size:13px;
+  line-height:1.8;
+}
+
+.wp-block-doro-plan-content .zq-copy-code{
+  display:inline-block!important;
+  padding:2px 6px!important;
+  margin:0 2px!important;
+  border:0!important;
+  border-radius:4px!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  color:#a6403e!important;
+  font:inherit!important;
+  font-weight:900!important;
+  line-height:1.5!important;
+  text-decoration:underline!important;
+  text-underline-offset:3px;
+  cursor:text!important;
+  appearance:none!important;
+  -webkit-appearance:none!important;
+  user-select:text!important;
+  -webkit-user-select:text!important;
+}
+
+
+
+.wp-block-doro-plan-content .zq-copy-tip{
+  display:block;
+  min-height:18px;
+  margin-top:3px!important;
+  color:#706657!important;
+  font-size:12px;
+  line-height:1.5;
+}
+
+.wp-block-doro-plan-content .zq-list{
+  display:block!important;
+  width:100%!important;
+  margin:0!important;
+  padding:0!important;
+  list-style:none!important;
+}
+
+.wp-block-doro-plan-content .zq-list li{
+  position:relative;
+  display:block!important;
+  width:100%!important;
+  margin:11px 0!important;
+  padding:0 0 0 30px!important;
+  color:#303b50!important;
+  font-size:14px;
+  line-height:1.6;
+  list-style:none!important;
+}
+
+.wp-block-doro-plan-content .zq-list li::before{
+  content:"";
+  position:absolute;
+  left:0;
+  top:4px;
+  width:19px;
+  height:19px;
+  border-radius:50%;
+  background:#d6a34b;
+  box-shadow:0 2px 5px rgba(159,111,39,.22);
+}
+
+.wp-block-doro-plan-content .zq-list li::after{
+  content:"";
+  position:absolute;
+  left:7px;
+  top:8px;
+  width:5px;
+  height:9px;
+  border-right:2px solid #fffdf5;
+  border-bottom:2px solid #fffdf5;
+  transform:rotate(45deg);
+}
+
+.wp-block-doro-plan-content .zq-em{
+  color:#a6403e!important;
+  font-weight:800!important;
+  text-decoration:underline;
+  text-decoration-color:rgba(166,64,62,.35);
+  text-underline-offset:3px;
+}
+
+@media(max-width:480px){
+  .wp-block-doro-plan-content .zq-pack{padding:14px;border-radius:16px}
+  .wp-block-doro-plan-content .zq-tag{font-size:12px;padding:6px 10px}
+  .wp-block-doro-plan-content .zq-price{font-size:38px}
+  .wp-block-doro-plan-content .zq-desc{font-size:13px}
+  .wp-block-doro-plan-content .zq-note,.wp-block-doro-plan-content .zq-coupon{font-size:12px}
+  .wp-block-doro-plan-content .zq-list li{font-size:13px;padding-left:28px!important}
+}

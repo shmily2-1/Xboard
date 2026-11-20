@@ -1,0 +1,28 @@
+/*
+Theme Name: 用户中心
+Theme URI: https://user.dorocloud.net/
+Author: 用户中心
+Description: 简洁的两栏写作主题。
+Version: 1.6.1-wp
+Requires at least: 6.4
+Tested up to: 6.7
+License: GNU General Public License v2 or later
+Text Domain: doro-notes
+*/
+
+:root{--ink:#1d2327;--muted:#646970;--line:#dcdcde;--bg:#fff;--accent:#0665d0}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.75 -apple-system,"Segoe UI","Noto Sans SC",sans-serif}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+.site-header{border-bottom:1px solid var(--line);padding:28px 0}
+.wrap{max-width:760px;margin:0 auto;padding:0 24px}
+.site-title{margin:0;font-size:22px;font-weight:600;letter-spacing:.02em}
+.site-desc{margin:6px 0 0;color:var(--muted);font-size:14px}
+.site-nav{margin-top:18px;display:flex;gap:20px;font-size:14px;flex-wrap:wrap}
+.post{padding:34px 0;border-bottom:1px solid var(--line)}
+.post h2{margin:0 0 8px;font-size:20px;font-weight:600}
+.post-meta{margin:0 0 10px;color:var(--muted);font-size:13px}
+.post p{margin:0}
+.site-footer{border-top:1px solid var(--line);margin-top:40px;padding:24px 0;color:var(--muted);font-size:13px}
+.screen-reader-text{position:absolute;clip:rect(1px,1px,1px,1px);height:1px;width:1px;overflow:hidden}
