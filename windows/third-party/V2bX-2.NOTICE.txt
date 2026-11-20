@@ -1,0 +1,11 @@
+V2bX-2 compatibility source attribution
+
+Reference repository: https://github.com/shmily2-1/V2bX-2
+Reviewed commit: 7906e9edc910d2d0c0c986cb46daf7431d64ad03
+Reference files: docs/HYSTERIA2-PORT-HOPPING.md, docs/patches/Xboard-hysteria2-port-hopping.patch, example/hysteria2-xboard.json.
+
+The upstream patch's Hysteria2PortHoppingTest.php and the example node JSON are retained/adapted in this distribution.
+Its repository license is reproduced in V2bX-2.LICENSE (Mozilla Public License 2.0).
+Compatibility additions and their tests are shipped in editable PHP source form.
+The original Xboard license is preserved in the root LICENSE file.
+No endorsement or official Windows support by either upstream project is implied.

@@ -45,9 +45,7 @@ systemctl start docker
 In the aaPanel dashboard, install:
 - Nginx (any version)
 - MySQL 5.7
-- ⚠️ PHP and Redis are not required on the host
-
-The Xboard container must run **PHP 8.2.35 or later**, with the latest security patch for its PHP release series.
+- ⚠️ PHP and Redis are not required
 
 ### 3. Site Configuration
 

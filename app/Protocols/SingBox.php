@@ -695,7 +695,9 @@ class SingBox extends AbstractProtocol
             if (isset($server['ports'])) {
                 $baseConfig['server_ports'] = [str_replace('-', ':', $server['ports'])];
             }
-            if (isset($protocol_settings['hop_interval'])) {
+            // Hysteria2 interval 0/null means use the client's default, not a 0s timer.
+            if (isset($protocol_settings['hop_interval']) &&
+                ((int) data_get($protocol_settings, 'version', 1) !== 2 || (int) $protocol_settings['hop_interval'] > 0)) {
                 $baseConfig['hop_interval'] = "{$protocol_settings['hop_interval']}s";
             }
         }

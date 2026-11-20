@@ -1,0 +1,31 @@
+# Dedicated API listener. The original port 80 site is intentionally unchanged.
+server {
+    listen 8080;
+    server_name dorocloud.net localhost 127.0.0.1;
+    root D:/wwwroot/dorocloud.net/public;
+    default_type application/json;
+    charset utf-8;
+
+    location = / {
+        return 200 '{"service":"DoroCloud API","api_base":"/api/v1","theme_enabled":false}';
+    }
+
+    # Only API routes can reach PHP; no theme, admin UI or static files here.
+    location ^~ /api/ {
+        rewrite ^ /index.php last;
+    }
+    location = /index.php {
+        internal;
+        include fastcgi_params;
+        fastcgi_param SCRIPT_FILENAME D:/wwwroot/dorocloud.net/public/index.php;
+        fastcgi_param HTTP_ACCEPT application/json;
+        fastcgi_param HTTP_PROXY "";
+        fastcgi_pass 127.0.0.1:20082;
+        fastcgi_intercept_errors off;
+    }
+    location / {
+        return 404 '{"message":"API only. Use /api/v1 or /api/v2."}';
+    }
+    access_log D:/BtSoft/wwwlogs/dorocloud-api-8080.log;
+    error_log D:/BtSoft/wwwlogs/dorocloud-api-8080.error.log;
+}

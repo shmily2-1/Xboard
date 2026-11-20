@@ -18,6 +18,7 @@
     $manifestPath = public_path('assets/admin/manifest.json');
     $manifest = file_exists($manifestPath) ? json_decode(file_get_contents($manifestPath), true) : null;
     $entry = is_array($manifest) ? ($manifest['index.html'] ?? null) : null;
+    $assetVersion = @filemtime($manifestPath) ?: time();
     $scripts = [];
     $styles = [];
     $locales = [];
@@ -60,22 +61,22 @@
 
   @if($entry && count($scripts) > 0)
     @foreach($styles as $css)
-      <link rel="stylesheet" crossorigin href="/assets/admin/{{ $css }}" />
+      <link rel="stylesheet" crossorigin href="/assets/admin/{{ $css }}?v={{ $assetVersion }}" />
     @endforeach
     @foreach($locales as $locale)
-      <script src="/assets/admin/{{ $locale }}"></script>
+      <script src="/assets/admin/{{ $locale }}?v={{ $assetVersion }}"></script>
     @endforeach
     @foreach($scripts as $js)
-      <script type="module" crossorigin src="/assets/admin/{{ $js }}"></script>
+      <script type="module" crossorigin src="/assets/admin/{{ $js }}?v={{ $assetVersion }}"></script>
     @endforeach
   @else
     {{-- Fallback: hardcoded paths for backward compatibility --}}
-    <script type="module" crossorigin src="/assets/admin/assets/index.js"></script>
-    <link rel="stylesheet" crossorigin href="/assets/admin/assets/index.css" />
-    <link rel="stylesheet" crossorigin href="/assets/admin/assets/vendor.css">
-    <script src="/assets/admin/locales/en-US.js"></script>
-    <script src="/assets/admin/locales/zh-CN.js"></script>
-    <script src="/assets/admin/locales/ko-KR.js"></script>
+    <script type="module" crossorigin src="/assets/admin/assets/index.js?v={{ $assetVersion }}"></script>
+    <link rel="stylesheet" crossorigin href="/assets/admin/assets/index.css?v={{ $assetVersion }}" />
+    <link rel="stylesheet" crossorigin href="/assets/admin/assets/vendor.css?v={{ $assetVersion }}">
+    <script src="/assets/admin/locales/en-US.js?v={{ $assetVersion }}"></script>
+    <script src="/assets/admin/locales/zh-CN.js?v={{ $assetVersion }}"></script>
+    <script src="/assets/admin/locales/ko-KR.js?v={{ $assetVersion }}"></script>
   @endif
 </head>
 

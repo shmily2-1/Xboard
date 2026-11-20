@@ -17,6 +17,18 @@ function XBField({label, value, onChange, type = "text", options, disabled, help
   return XBCreate("div", {className: XBClass}, XBCreate("label", {htmlFor: id, className: "text-foreground/80"}, label), control,
     help && XBCreate("p", {className: "text-muted-foreground"}, help));
 }
+// Display only public installation metadata; never fetch or edit Cap secrets.
+function XBCapSettings({configuration}) {
+  const installed = configuration?.cap_installed === true;
+  return XBCreate("section", {className: "space-y-3 rounded-md border p-4", "data-native-cap-settings": true, "aria-label": "Cap 验证码配置"},
+    XBCreate("h4", {className: "font-medium"}, "Cap（本机自建）验证码配置"),
+    XBCreate("p", {role: "status", className: "text-sm text-muted-foreground"},
+      !configuration ? "正在读取 Cap 安装配置…" : installed ? "已检测到 Cap 安装配置（不代表实时服务健康状态）。" : "未检测到有效的 Cap 安装配置，请先检查本机 Cap 服务。"),
+    XBCreate(XBField, {label: "Cap 同源接口", value: configuration?.cap_api_endpoint || "/api/v1/guest/captcha/", disabled: true}),
+    XBCreate("p", {className: "text-sm text-muted-foreground"}, "密钥由本机安全配置自动管理，无需填写；此页面不会显示或修改私钥。"),
+    XBCreate("p", {className: "text-sm text-muted-foreground"}, "可以先在关闭验证码的状态下选择 Cap；确认用户端适配及服务健康后，再手动开启上方验证码开关。"),
+    XBCreate("p", {className: "text-sm text-muted-foreground"}, "服务启动、停止和健康检查：在服务器运行项目目录中的 09_Cap-Manager.bat。"));
+}
 function XBCheck({label, checked, onChange}) {
   const id = H.useId();
   return XBCreate("div", {className: "flex items-center gap-2 font-mono text-xs"},
@@ -152,12 +164,10 @@ function XBNodeProtocol({form, serverType, value, onChange}) {
       XBCreate("strong", {className: "block text-foreground"}, "VLESS 配置提示"),
       XBCreate("p", {className: "mt-1"}, profile === "v2bx-extended" ? "当前使用 V2bX 后端，Encryption、传输参数和 XDRIVE 会随节点配置下发。" : "当前使用原有后端；要启用 V2bX 的 Encryption 或 XDRIVE，请将节点后端切换为 V2bX。")));
   }
-  if (isHysteria) {
-    children.push(XBCreate(XBField, {key: "hysteria-sni", label: "证书域名（SNI）", value: settings.tls?.server_name || "",
-      help: "填写节点证书对应的域名；留空时使用节点地址。伪装站点在下方单独设置。",
-      onChange: v => onChange({...settings, tls: {...(settings.tls || {}), server_name: v}})}));
-    children.push(XBHysteriaEditor({form, value: settings, onChange}));
-  }
+  if (isHysteria) children.push(XBCreate(XBField, {key: "hysteria-sni", label: "证书域名（SNI）", value: settings.tls?.server_name || "",
+    help: "填写节点证书对应的域名，例如 api-a-m4.ttxxvv.cn。该值会下发到 Hysteria2 的 server_name/tls_settings.server_name。",
+    onChange: v => onChange({...settings, tls: {...(settings.tls || {}), server_name: v}})}),
+    XBHysteriaEditor({form, value: settings, onChange}));
   return XBCreate("div", {className: "space-y-4", "data-native-node-settings": true}, ...children);
 }
 

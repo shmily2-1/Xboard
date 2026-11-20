@@ -178,6 +178,7 @@ class ConfigController extends Controller
                 'email_gmail_limit_enable' => (bool) admin_setting('email_gmail_limit_enable', 0),
                 'captcha_enable' => (bool) admin_setting('captcha_enable', 0),
                 'captcha_type' => admin_setting('captcha_type', 'recaptcha'),
+                ...app(\App\Services\CapService::class)->publicConfiguration(),
                 'recaptcha_key' => admin_setting('recaptcha_key', ''),
                 'recaptcha_site_key' => admin_setting('recaptcha_site_key', ''),
                 'recaptcha_v3_secret_key' => admin_setting('recaptcha_v3_secret_key', ''),

@@ -27,14 +27,26 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule): void
     {
-        Cache::put(CacheKey::get('SCHEDULE_LAST_CHECK_AT', null), time());
+        // Record an actual scheduled run rather than every console bootstrap.
+        $schedule->call(function () {
+            Cache::put(CacheKey::get('SCHEDULE_LAST_CHECK_AT', null), time());
+            if (config('windows.enabled')) {
+                $jobs = app(\Laravel\Horizon\Contracts\JobRepository::class);
+                $jobs->trimRecentJobs();
+                $jobs->trimFailedJobs();
+                $jobs->trimMonitoredJobs();
+            }
+        })->name('xboard-runtime-heartbeat')->everyMinute()->onOneServer();
         // v2board
         $schedule->command('xboard:statistics')->dailyAt('0:10')->onOneServer();
         // check
         $schedule->command('check:order')->everyMinute()->onOneServer()->withoutOverlapping(5);
         $schedule->command('check:commission')->everyMinute()->onOneServer()->withoutOverlapping(5);
         $schedule->command('check:ticket')->everyMinute()->onOneServer()->withoutOverlapping(5);
-        $schedule->command('check:traffic-exceeded')->everyMinute()->onOneServer()->withoutOverlapping(10)->runInBackground();
+        $trafficCheck = $schedule->command('check:traffic-exceeded')->everyMinute()->onOneServer()->withoutOverlapping(10);
+        if (!config('windows.enabled')) {
+            $trafficCheck->runInBackground();
+        }
         // reset
         $schedule->command('reset:traffic')->everyMinute()->onOneServer()->withoutOverlapping(10);
         $schedule->command('reset:log')->daily()->onOneServer();

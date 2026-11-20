@@ -10,7 +10,6 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 class PlanResource extends JsonResource
 {
-    private const PRICE_MULTIPLIER = 100;
 
     /**
      * Transform the resource into an array.
@@ -43,7 +42,7 @@ class PlanResource extends JsonResource
     /**
      * Get transformed period prices using Plan mapping
      *
-     * @return array<string, float|null>
+     * @return array<string, int|null>
      */
     protected function getPeriodPrices(): array
     {
@@ -52,7 +51,7 @@ class PlanResource extends JsonResource
                 $price = $this->resource['prices'][$newPeriod] ?? null;
                 return [
                     $legacyPeriod => $price !== null
-                        ? (float) $price * self::PRICE_MULTIPLIER
+                        ? \App\Support\Money::toCents($price)
                         : null
                 ];
             })
@@ -91,11 +90,11 @@ class PlanResource extends JsonResource
             '{{reset_method}}' => $this->getResetMethodText(),
         ];
 
-        return str_replace(
+        return \App\Support\LegacyPlanContent::forMarkdown(str_replace(
             array_keys($replacements),
             array_values($replacements),
             $content
-        );
+        ));
     }
 
     /**

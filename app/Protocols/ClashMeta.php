@@ -435,11 +435,20 @@ class ClashMeta extends AbstractProtocol
                 $array['tls'] = true;
                 $array['skip-cert-verify'] = (bool) data_get($protocol_settings, 'reality_settings.allow_insecure', false);
                 $array['servername'] = data_get($protocol_settings, 'reality_settings.server_name');
-                $array['reality-opts'] = [
+                $array['reality-opts'] = array_filter([
                     'public-key' => data_get($protocol_settings, 'reality_settings.public_key'),
-                    'short-id' => data_get($protocol_settings, 'reality_settings.short_id')
-                ];
-                self::appendUtls($array, $protocol_settings);
+                    'short-id' => data_get($protocol_settings, 'reality_settings.short_id'),
+                    // The current V2bX/Xray REALITY service uses the
+                    // X25519MLKEM768 hybrid handshake; mihomo must opt in.
+                    'support-x25519mlkem768' => true,
+                ], static fn ($value) => $value !== null);
+                // Mihomo rejects REALITY VLESS nodes without a uTLS fingerprint.
+                // Keep the configured fingerprint when uTLS is enabled, otherwise
+                // provide the safe default expected by REALITY clients.
+                $utls = data_get($protocol_settings, 'utls');
+                $array['client-fingerprint'] = data_get($utls, 'enabled')
+                    ? (Helper::getTlsFingerprint($utls) ?: 'chrome')
+                    : 'chrome';
                 break;
             default:
                 break;

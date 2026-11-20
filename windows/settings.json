@@ -1,0 +1,8 @@
+{
+  "PhpExe": "D:\\BtSoft\\php\\85\\php.exe",
+  "NginxExe": "D:\\BtSoft\\nginx\\nginx.exe",
+  "NginxRoot": "D:\\BtSoft\\nginx",
+  "TaskName": "Xboard-dorocloud.net",
+  "BackupRoot": "D:\\backup\\Xboard-dorocloud.net",
+  "SiteHost": "dorocloud.net"
+}

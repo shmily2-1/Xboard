@@ -31,6 +31,10 @@ def main():
                                  (temp / 'umi-native.js', ROOT / 'theme/Xboard/assets/umi-native.js')]:
             if actual.read_bytes() != expected.read_bytes():
                 raise SystemExit('Native asset is not reproducible: ' + expected.name)
+        bundle = (admin / 'assets/index-v2bx-native.js').read_text(encoding='utf-8')
+        assert bundle.count('value:"cap",children:"Cap（本机自建）"') == 1, 'Cap provider missing or duplicated'
+        assert bundle.count('Q.jsx(XBCapSettings,{configuration:a?.data?.safe})') == 1, 'Cap settings panel missing or duplicated'
+        assert 'o.watch("captcha_enable")&&Q.jsxs(Q.Fragment,{children:[Q.jsx($y,{control:o.control,name:"captcha_type",' not in bundle, 'CAPTCHA provider must remain configurable while disabled'
         assert '/v2bx" style=' not in (ROOT / 'resources/views/admin.blade.php').read_text()
         assert 'href="/connections"' not in (ROOT / 'theme/Xboard/dashboard.blade.php').read_text()
         print('Native admin and user assets reproduce exactly; no separate application entry points.')

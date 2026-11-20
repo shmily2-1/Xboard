@@ -146,14 +146,37 @@ class ServerService
     /**
      * 处理节点在线设备汇报
      */
-    public static function processAlive(int $nodeId, array $alive): void
+    public static function processAlive(Server $node, array $alive): void
     {
         $service = app(DeviceStateService::class);
-        foreach ($alive as $uid => $ips) {
-            $service->setDevices((int) $uid, $nodeId, (array) $ips);
-        }
-    }
+        $nodeId = $node->id;
+        $cacheNodeId = $node->parent_id ?: $nodeId;
+        $nodeType = strtoupper($node->type);
+        $onlineUsers = 0;
 
+        foreach ($alive as $uid => $ips) {
+            $ips = (array) $ips;
+            if (!empty($ips)) {
+                $onlineUsers++;
+            }
+            $service->setDevices((int) $uid, $nodeId, $ips);
+        }
+
+        // V2bX reports the authoritative per-node online user snapshot via /alive.
+        // Do not derive this from traffic: traffic batches are threshold-filtered and
+        // can legitimately be empty while users are still connected.
+        $cacheTime = max(300, (int) admin_setting('server_push_interval', 60) * 3);
+        Cache::put(
+            CacheKey::get("SERVER_{$nodeType}_ONLINE_USER", $cacheNodeId),
+            $onlineUsers,
+            $cacheTime
+        );
+        Cache::put(
+            CacheKey::get("SERVER_{$nodeType}_LAST_PUSH_AT", $cacheNodeId),
+            time(),
+            $cacheTime
+        );
+    }
     /**
      * 处理节点连接数汇报
      */
@@ -250,6 +273,16 @@ class ServerService
         );
     }
 
+    private static function buildHysteria2PortHoppingConfig(Server $node): array
+    {
+        // Use this node's public range, never its parent's range or the listener.
+        \App\Support\Hysteria2PortHopping::listenerPort($node->server_port);
+        return [
+            'ports' => \App\Support\Hysteria2PortHopping::ports($node->port),
+            'hop_interval' => \App\Support\Hysteria2PortHopping::interval(data_get($node->protocol_settings, 'hop_interval')),
+        ];
+    }
+
     public static function buildNodeConfig(Server $node): array
     {
         if ($node->backend_profile === 'v2bx-extended') {
@@ -323,12 +356,12 @@ class ServerService
                 ...match ((int) $protocolSettings['version']) {
                         1 => ['obfs' => $protocolSettings['obfs']['password'] ?? null],
                         2 => [
-                            ...\App\Services\V2bX\NodeConfig::portHopping($node),
                             'obfs' => $protocolSettings['obfs']['open'] ? ($protocolSettings['obfs']['mode'] ?: $protocolSettings['obfs']['type']) : null,
                             'obfs-password' => $protocolSettings['obfs']['password'] ?? null,
+...self::buildHysteria2PortHoppingConfig($node),
                             'obfs-mode' => $protocolSettings['obfs']['mode'] ?? $protocolSettings['obfs']['type'] ?? 'salamander',
                             'obfs-min-packet-size' => $protocolSettings['obfs']['min_packet_size'] ?? null,
-                            'obfs-max-packet-size' => $protocolSettings['obfs']['max_packet_size'] ?? null,
+                            'obfs-max-packet-size' => $protocolSettings['obfs']['max_packet_size'] ?? null
                         ],
                         default => [],
                     },

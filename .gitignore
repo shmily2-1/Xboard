@@ -36,3 +36,19 @@ compose.yaml
 compose.host.yaml
 compose.split.yaml
 .scribe
+
+/windows/cap/private.json
+/windows/cap/node_modules/
+/windows/cap/runtime/
+/windows/cap/logs/
+/windows/cap/state/
+/windows/cap/test/
+
+# Local Windows service runtimes and state
+/windows/**/node_modules/
+/windows/**/runtime/
+/windows/**/logs/
+/windows/**/state/
+/windows/**/test/
+*.tmp
+*.tmp.*

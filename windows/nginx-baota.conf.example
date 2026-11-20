@@ -1,0 +1,65 @@
+server
+{
+    listen 80;
+    server_name dorocloud.net;
+    index index.php index.html index.htm default.php default.htm default.html;
+    root D:/wwwroot/dorocloud.net/public;
+    include D:/BtSoft/nginx/conf/vhost/extension/dorocloud.net/*.conf;
+
+	#START-ERROR-PAGE
+	#error_page 403 /403.html;
+	error_page 404 /404.html;
+    #error_page 502 /502.html;
+	#END-ERROR-PAGE
+
+    #HTTP_TO_HTTPS_START
+    #HTTP_TO_HTTPS_END
+
+    #LIMIT_INFO_START
+    #LIMIT_INFO_END
+
+    #SSL-INFO-START
+    #SSL-INFO-END
+
+    #proxy-cache
+    location ~ /purge(/.*) {
+        proxy_cache_purge cache_one $1$is_args$args;
+    }
+    #proxy
+    include proxy/dorocloud.net/*.conf;
+
+    # XBOARD-WINDOWS-START: only public/index.php is executable
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+    location ~ /\.(?!well-known(?:/|$)) { return 404; }
+    location ~* \.(?:env|ini|log|sql|bak|bat|cmd|ps1|phar|lock|sqlite|ya?ml)(?:$|/) { return 404; }
+    location ~ ^/(?!index\.php$).*\.php(?:/|$) { return 404; }
+    # XBOARD-WINDOWS-END
+    #PHP-INFO-START
+    include php/82.conf;
+    #PHP-INFO-END
+
+    #REWRITE-START
+    include rewrite/dorocloud.net/*.conf;
+    #REWRITE-END
+
+    #redirect
+    include redirect/dorocloud.net/*.conf;
+
+    #access forbidden
+    location ~ ^/(\.user.ini|\.htaccess|\.git|\.svn|\.project|LICENSE|README.md){
+        return 404;
+    }
+
+    #ssl
+    location ~ \.well-known{
+        allow all;
+    }
+
+	#static-cache
+	include static_cache/dorocloud.net/*.conf;
+
+	access_log  D:/BtSoft/wwwlogs/dorocloud.net.log;
+    error_log  D:/BtSoft/wwwlogs/dorocloud.net.error.log;
+}

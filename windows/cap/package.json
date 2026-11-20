@@ -1,0 +1,18 @@
+{
+  "name": "xboard-windows-cap",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Loopback-only Cap adapter with Redis 5 atomic replay protection",
+  "scripts": {
+    "start": "node server.mjs",
+    "test": "node --test test/*.test.mjs"
+  },
+  "dependencies": {
+    "capjs-core": "0.1.6",
+    "redis": "4.7.1",
+    "cap-widget": "0.1.58",
+    "@cap.js/wasm": "0.0.8",
+    "pako": "2.1.0"
+  }
+}

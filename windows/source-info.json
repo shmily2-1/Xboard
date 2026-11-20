@@ -1,0 +1,15 @@
+{
+  "Branch": "master",
+  "Repository": "https://github.com/cedar2025/Xboard",
+  "FetchedAt": "2026-11-14T02:00:00+08:00",
+  "CommitDate": "2026-11-02T06:42:46Z",
+  "Commit": "d826a3b32f73bde24acce2a3ab033c6538ce121d",
+  "AdminCommit": "ef5f43da335092cbff8fdf0ad7ff9b4d92d7d0d7",
+  "PortVersion": "1.1.0",
+  "Compatibility": {
+    "Project": "shmily2-1/V2bX-2",
+    "Commit": "7906e9edc910d2d0c0c986cb46daf7431d64ad03",
+    "Feature": "Hysteria2 port hopping",
+    "Scope": "panel node API, validation and subscription default interval; Linux nodes required"
+  }
+}

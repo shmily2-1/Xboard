@@ -1,0 +1,159 @@
+/* DoroCloud plan display fix. Keep scoped to the subscription routes. */
+html[data-doro-plan-page] #app .card-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+  gap: 24px;
+  min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0;
+  align-items: stretch;
+}
+html[data-doro-plan-page] #app .card-container > .card-item {
+  min-width: 0;
+  max-width: 100%;
+}
+html[data-doro-plan-page] #app .card-container .n-card {
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  overflow: hidden;
+  text-align: left;
+}
+html[data-doro-plan-page] #app .card-container .n-card-header {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  padding: 0;
+}
+html[data-doro-plan-page] #app .card-container .n-card-header__main {
+  flex: none;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 18px 20px;
+  font-size: 20px;
+  font-weight: 500;
+  line-height: 1.5;
+  text-align: left;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+html[data-doro-plan-page] #app .card-container .n-card-header__extra {
+  width: 100%;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 28px 20px 24px;
+  background: #e9ecef;
+  text-align: left;
+}
+html[data-doro-plan-page] #app .card-container .n-card-header__extra .text-3xl {
+  display: block;
+  font-size: 36px;
+  font-weight: 600;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+html[data-doro-plan-page] #app .card-container .n-card-header__extra .text-base {
+  display: block;
+  margin: 8px 0 0;
+  padding: 0;
+  color: #6c757d;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+html[data-doro-plan-page] #app .card-container .n-card__content {
+  min-width: 0;
+  padding: 16px 20px 0;
+  text-align: left;
+}
+html[data-doro-plan-page] #app .card-container .n-card__action {
+  padding: 16px 20px 20px;
+  border-top: 0;
+  background: var(--n-color, #fff);
+  text-align: left;
+}
+/* Override the Markdown theme's list indentation, not the stored plan HTML. */
+html[data-doro-plan-page] #app .markdown-body .ny-pack {
+  text-align: left;
+}
+html[data-doro-plan-page] #app .markdown-body .ny-pack .ny-tag {
+  justify-content: flex-start;
+  text-align: left;
+  margin-left: 0;
+  margin-right: 0;
+}
+html[data-doro-plan-page] #app .markdown-body .ny-pack .ny-list {
+  list-style: none;
+  box-sizing: border-box;
+  margin: 0 !important;
+  padding: 0 !important;
+  text-align: left;
+}
+html[data-doro-plan-page] #app .markdown-body .ny-pack .ny-list > li {
+  box-sizing: border-box;
+  position: relative;
+  margin: 10px 0 !important;
+  padding: 0 0 0 26px !important;
+  text-align: left;
+  text-indent: 0;
+  line-height: 1.65;
+}
+html[data-doro-plan-page] #app .markdown-body .ny-pack .ny-list > li::before {
+  left: 0;
+}
+html[data-doro-plan-page] #app .doro-plan-benefits-icon {
+  font-family: "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji", sans-serif;
+  font-size: 16px;
+  flex: none;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 1;
+}
+html.dark[data-doro-plan-page] #app .card-container .n-card-header__extra {
+  background: #2b3038;
+}
+html.dark[data-doro-plan-page] #app .card-container .n-card-header__extra .text-base {
+  color: #aeb7c3;
+}
+html.dark[data-doro-plan-page] #app .markdown-body .ny-pack {
+  color: #e5e7eb;
+}
+@media (max-width: 767px) {
+  html[data-doro-plan-page] #app .card-container {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 20px;
+    box-sizing: border-box;
+    padding: 0 12px;
+    max-width: 480px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  html[data-doro-plan-page] #app .card-container .n-card-header__main {
+    padding: 16px;
+    font-size: 18px;
+  }
+  html[data-doro-plan-page] #app .card-container .n-card-header__extra {
+    padding: 24px 16px 20px;
+  }
+  html[data-doro-plan-page] #app .card-container .n-card__content {
+    padding: 16px 16px 0;
+  }
+  html[data-doro-plan-page] #app .card-container .n-card__action {
+    padding: 16px;
+  }
+}
+
+/* Keep mobile cards distinct from the page background and away from screen edges. */
+@media (max-width: 767px) {
+  html[data-doro-plan-page] #app .card-container .n-card {
+    box-sizing: border-box;
+    border: 1px solid #dce1e9;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(31, 41, 55, 0.06);
+  }
+  html.dark[data-doro-plan-page] #app .card-container .n-card {
+    border-color: #414854;
+  }
+}

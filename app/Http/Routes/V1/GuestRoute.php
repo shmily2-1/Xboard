@@ -20,6 +20,9 @@ class GuestRoute
             $router->post('/telegram/webhook', [TelegramController::class, 'webhook']);
             // Payment
             $router->match(['get', 'post'], '/payment/notify/{method}/{uuid}', [PaymentController::class, 'notify']);
+            // Cap: challenge/redeem only; siteverify remains server-to-server.
+            $router->post('/captcha/{action}', [\App\Http\Controllers\V1\Guest\CapController::class, 'handle'])
+                ->where('action', 'challenge|redeem')->middleware('throttle:120,1');
             // Comm
             $router->get('/comm/config', [CommController::class, 'config']);
         });

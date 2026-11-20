@@ -24,6 +24,9 @@ class UpdateService
      */
     public function getCurrentVersion(): string
     {
+        if (config('windows.enabled')) {
+            return config('windows.version');
+        }
         $date = Cache::get(self::CACHE_VERSION_DATE) ?? date('Ymd');
         $hash = Cache::rememberForever(self::CACHE_VERSION, function () {
             return $this->getCurrentCommit();
@@ -36,6 +39,9 @@ class UpdateService
      */
     public function updateVersionCache(): void
     {
+        if (config('windows.enabled')) {
+            return;
+        }
         try {
             $result = Process::run('git log -1 --format=%cd:%H --date=format:%Y%m%d');
             if ($result->successful()) {
@@ -167,6 +173,9 @@ class UpdateService
 
     public function executeUpdate(): array
     {
+        if (config('windows.enabled')) {
+            return ['success' => false, 'message' => 'Windows 兼容版请先运行 BAT 备份，再手动合并升级；网页自动更新已禁用，防止覆盖兼容补丁。'];
+        }
         // Check for new version first
         $updateInfo = $this->checkForUpdates();
         if ($updateInfo['is_local_newer']) {
@@ -256,6 +265,9 @@ class UpdateService
 
     protected function getCurrentCommit(): string
     {
+        if (config('windows.enabled')) {
+            return substr(config('windows.commit'), 0, 7);
+        }
         try {
             // Ensure git configuration is correct
             Process::run(sprintf('git config --global --add safe.directory %s', base_path()));
@@ -426,6 +438,9 @@ class UpdateService
 
     protected function getLocalGitLogs(int $limit = 50): array
     {
+        if (config('windows.enabled')) {
+            return [['hash' => config('windows.commit'), 'message' => 'Windows compatibility build; update manually', 'author' => '', 'date' => '2026-08-29T20:50:34Z']];
+        }
         try {
             // 获取本地git log
             $result = Process::run(

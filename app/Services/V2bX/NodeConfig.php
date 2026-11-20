@@ -59,28 +59,6 @@ class NodeConfig
         ]];
     }
 
-    public static function portHopping(Server $node): array
-    {
-        $port = trim((string) $node->port);
-        if (!preg_match('/^([0-9]{1,5})(?:-([0-9]{1,5}))?$/D', $port, $matches)) {
-            self::fail('Hysteria2 连接端口应为单个端口或起始-结束范围');
-        }
-        $first = (int) $matches[1];
-        $last = isset($matches[2]) ? (int) $matches[2] : $first;
-        if ($first < 1 || $last > 65535 || $first > $last) {
-            self::fail('Hysteria2 连接端口范围必须在 1 到 65535 之间且由小到大');
-        }
-        $interval = data_get($node->protocol_settings, 'hop_interval');
-        if ($interval !== null && (!is_numeric($interval) || (int) $interval != $interval
-            || ((int) $interval !== 0 && (int) $interval < 5))) {
-            self::fail('Hysteria2 跳跃间隔应为至少 5 秒，留空或 0 使用客户端默认值');
-        }
-        return [
-            'ports' => isset($matches[2]) ? "{$first}-{$last}" : null,
-            'hop_interval' => $interval === null ? null : (int) $interval,
-        ];
-    }
-
     public static function build(Server $node): array
     {
         if (!in_array($node->type, ['http', 'mixed', 'masque', 'vless', 'hysteria'], true)) {
@@ -93,7 +71,9 @@ class NodeConfig
         $out = [
             'protocol' => $node->type, 'host' => $node->host,
             'server_port' => (int) $node->server_port,
-            'server_name' => data_get($p, 'tls_settings.server_name') ?: $node->host,
+            'server_name' => $node->type === 'hysteria'
+                ? (data_get($p, 'tls.server_name') ?: $node->host)
+                : (data_get($p, 'tls_settings.server_name') ?: $node->host),
             'tls' => (int) ($p['tls'] ?? 0),
             'v2bx_contract' => 1, 'traffic_batch' => true,
         ];
@@ -150,6 +130,7 @@ class NodeConfig
             if ((int) ($p['tls'] ?? 1) !== 1) {
                 self::fail('Hysteria2 必须启用 TLS');
             }
+            \App\Support\Hysteria2PortHopping::listenerPort($node->server_port);
             $obfs = $p['obfs'] ?? [];
             $mode = $obfs['mode'] ?? ($obfs['type'] ?? '');
             if (!empty($obfs['open'])) {
@@ -166,12 +147,11 @@ class NodeConfig
             } else {
                 $mode = '';
             }
-            $out['tls'] = 1;
-            $out['server_name'] = data_get($p, 'tls.server_name') ?: $node->host;
             $out += [
                 'version' => 2,
-                ...self::portHopping($node),
                 'tls_settings' => $p['tls'] ?? [],
+                'ports' => \App\Support\Hysteria2PortHopping::ports($node->port),
+                'hop_interval' => \App\Support\Hysteria2PortHopping::interval(data_get($p, 'hop_interval')),
                 'up_mbps' => (int) data_get($p, 'bandwidth.up', 0),
                 'down_mbps' => (int) data_get($p, 'bandwidth.down', 0),
                 'obfs' => $mode ?: null,

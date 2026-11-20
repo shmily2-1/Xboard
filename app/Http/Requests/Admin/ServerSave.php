@@ -267,21 +267,41 @@ class ServerSave extends FormRequest
 
     public function withValidator($validator): void
     {
-        $validator->after(function ($validator) {
-            if ($validator->errors()->isNotEmpty()) { return; }
+        $validator->after(function ($validator): void {
             $profile = $this->input('backend_profile', $this->input('id')
                 ? Server::find($this->input('id'))?->backend_profile : 'legacy');
             if (in_array($this->input('type'), ['mixed', 'masque'], true) && $profile !== 'v2bx-extended') {
                 $validator->errors()->add('backend_profile', '请选择 V2bX 扩展后端');
                 return;
             }
-            if ($profile === 'v2bx-extended') {
+            if ($profile === 'v2bx-extended' && $validator->errors()->isEmpty()) {
                 try {
                     \App\Services\V2bX\NodeConfig::build(new Server($this->all()));
                 } catch (\Illuminate\Validation\ValidationException $e) {
                     foreach ($e->errors() as $key => $messages) {
                         foreach ($messages as $message) { $validator->errors()->add($key, $message); }
                     }
+                }
+            }
+            if ($this->input('type') !== Server::TYPE_HYSTERIA ||
+                $validator->errors()->has('protocol_settings.version') ||
+                (int) $this->input('protocol_settings.version') !== 2) {
+                return;
+            }
+            // Validate before Eloquent casts settings, so 4.5/"abc" cannot become 4/0.
+            $checks = [
+                'port' => ['ports', 'Hysteria2 连接端口只支持 1–65535 内的单端口或递增范围（例如 20000-30000），不支持逗号列表。'],
+                'server_port' => ['listenerPort', 'Hysteria2 后端端口必须是 1–65535 内的单个固定端口，不能填写范围。'],
+                'protocol_settings.hop_interval' => ['interval', 'Hysteria2 跳跃间隔须为至少 5 秒的整数；留空或 0 使用客户端默认值。'],
+            ];
+            foreach ($checks as $field => [$method, $message]) {
+                if ($validator->errors()->has($field)) {
+                    continue;
+                }
+                try {
+                    \App\Support\Hysteria2PortHopping::$method($this->input($field));
+                } catch (\InvalidArgumentException $exception) {
+                    $validator->errors()->add($field, $message);
                 }
             }
         });

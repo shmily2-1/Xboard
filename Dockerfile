@@ -1,62 +1,35 @@
-FROM phpswoole/swoole:php8.2-alpine AS runtime
+FROM phpswoole/swoole:php8.2-alpine
 
-RUN php -r 'if (version_compare(PHP_VERSION, "8.2.35", "<")) { \
-    fwrite(STDERR, "PHP >= 8.2.35 is required for security fixes; found " . PHP_VERSION . "\n"); exit(1); \
-}'
+COPY --from=mlocati/php-extension-installer /usr/bin/install-php-extensions /usr/local/bin/
 
-COPY --from=mlocati/php-extension-installer:2.12.3 /usr/bin/install-php-extensions /usr/local/bin/
-COPY --from=composer:2.10.3 /usr/bin/composer /usr/local/bin/composer
-
-# Install these extensions separately to preserve the ARM64 compiler workarounds.
+# Install PHP extensions one by one with lower optimization level for ARM64 compatibility
 RUN CFLAGS="-O0" install-php-extensions pcntl && \
-    CFLAGS="-O0 -g0" install-php-extensions bcmath
-
-RUN IPE_PROCESSOR_COUNT=2 install-php-extensions zip
-
-# Keep Redis independent of Alpine's package version to preserve RDB 14 compatibility.
-COPY --from=redis:8-alpine /usr/local/bin/redis-* /usr/local/bin/
-
-RUN apk --no-cache add \
-        shadow \
-        sqlite \
-        mysql-client \
-        mysql-dev \
-        mariadb-connector-c \
-        git \
-        patch \
-        supervisor \
-        libssl3 \
-        libcrypto3 \
-        caddy && \
-    redis-server --version && \
-    redis-cli --version && \
-    addgroup -S -g 1000 www && \
-    adduser -S -G www -u 1000 www && \
+    CFLAGS="-O0 -g0" install-php-extensions bcmath && \
+    install-php-extensions zip && \
+    install-php-extensions redis && \
+    apk --no-cache add shadow sqlite mysql-client mysql-dev mariadb-connector-c git patch supervisor redis caddy && \
+    addgroup -S -g 1000 www && adduser -S -G www -u 1000 www && \
     (getent group redis || addgroup -S redis) && \
-    (getent passwd redis || adduser -S -G redis -H -h /data redis) && \
-    php -r 'foreach (["swoole", "pcntl", "posix", "bcmath", "pdo_mysql", "pdo_sqlite", "sockets", "zip", "igbinary", "redis"] as $extension) { \
-        if (!extension_loaded($extension)) { fwrite(STDERR, "Missing PHP extension: {$extension}\n"); exit(1); } \
-    }'
-
-FROM runtime AS app
+    (getent passwd redis || adduser -S -G redis -H -h /data redis)
 
 WORKDIR /www
 
 COPY .docker /
 
+# Add build arguments
 ARG CACHEBUST=1
 ARG REPO_URL=https://github.com/cedar2025/Xboard
 ARG BRANCH_NAME=master
 ARG USE_LOCAL_SOURCE=0
 
-COPY . /source
+COPY . /www
 
-RUN rm -rf ./* ./.git && \
-    if [ "${USE_LOCAL_SOURCE}" = "1" ]; then \
-        echo "Using local Xboard source (CACHEBUST: ${CACHEBUST})" && \
-        cp -a /source/. .; \
+RUN if [ "${USE_LOCAL_SOURCE}" = "1" ]; then \
+        echo "Using local Xboard source (CACHEBUST: ${CACHEBUST})"; \
     else \
         echo "Attempting to clone branch: ${BRANCH_NAME} from ${REPO_URL} with CACHEBUST: ${CACHEBUST}" && \
+        rm -rf ./* && \
+        rm -rf .git && \
         git config --global --add safe.directory /www && \
         git clone --depth 1 --branch ${BRANCH_NAME} ${REPO_URL} . && \
         git submodule update --init --recursive --force; \

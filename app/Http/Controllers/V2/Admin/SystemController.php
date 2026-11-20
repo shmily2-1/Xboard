@@ -20,6 +20,7 @@ class SystemController extends Controller
     public function getSystemStatus()
     {
         $data = [
+            'runtime' => config('windows.enabled') ? 'windows-native' : 'horizon',
             'schedule' => $this->getScheduleStatus(),
             'horizon' => $this->getHorizonStatus(),
             'schedule_last_runtime' => Cache::get(CacheKey::get('SCHEDULE_LAST_CHECK_AT', null)),
@@ -29,6 +30,9 @@ class SystemController extends Controller
 
     public function getQueueWorkload(WorkloadRepository $workload)
     {
+        if (config('windows.enabled')) {
+            return $this->success(\App\Support\WindowsRuntime::workload());
+        }
         return $this->success(collect($workload->get())->sortBy('name')->values()->toArray());
     }
 
@@ -39,6 +43,9 @@ class SystemController extends Controller
 
     protected function getHorizonStatus(): bool
     {
+        if (config('windows.enabled')) {
+            return \App\Support\WindowsRuntime::healthy();
+        }
         if (!$masters = app(MasterSupervisorRepository::class)->all()) {
             return false;
         }
@@ -63,7 +70,9 @@ class SystemController extends Controller
             'queueWithMaxThroughput' => app(MetricsRepository::class)->queueWithMaximumThroughput(),
             'recentJobs' => app(JobRepository::class)->countRecent(),
             'status' => $this->getHorizonStatus(),
-            'wait' => collect(app(WaitTimeCalculator::class)->calculate())->take(1),
+            'wait' => config('windows.enabled')
+                ? collect(\App\Support\WindowsRuntime::workload())->mapWithKeys(fn ($w) => ['redis:' . $w['name'] => $w['wait']])->sortDesc()->take(1)
+                : collect(app(WaitTimeCalculator::class)->calculate())->take(1),
         ];
         return $this->success($data);
     }
@@ -75,6 +84,9 @@ class SystemController extends Controller
      */
     protected function totalProcessCount()
     {
+        if (config('windows.enabled')) {
+            return \App\Support\WindowsRuntime::processes();
+        }
         $supervisors = app(SupervisorRepository::class)->all();
 
         return collect($supervisors)->reduce(function ($carry, $supervisor) {
@@ -96,6 +108,28 @@ class SystemController extends Controller
         return collect($masters)->filter(function ($master) {
             return $master->status === 'paused';
         })->count();
+    }
+
+    public function getQueueMasters()
+    {
+        if (!config('windows.enabled')) {
+            return app()->call([app(\Laravel\Horizon\Http\Controllers\MasterSupervisorController::class), 'index']);
+        }
+        $state = \App\Support\WindowsRuntime::status();
+        if (!($state['running'] ?? false)) {
+            return response()->json((object) []);
+        }
+        $name = 'windows-native';
+        $supervisors = array_map(fn ($w) => [
+            'name' => $name . ':' . $w['name'], 'master' => $name,
+            'status' => ($w['healthy'] ?? false) ? 'running' : 'inactive',
+            'pid' => $w['pid'], 'processes' => [$w['queue'] => ($w['healthy'] ? 1 : 0)],
+            'options' => ['queue' => $w['queue'], 'balance' => false],
+        ], $state['workers'] ?? []);
+        return response()->json([$name => [
+            'name' => $name, 'pid' => $state['pid'], 'status' => 'running',
+            'environment' => config('app.env'), 'supervisors' => $supervisors,
+        ]]);
     }
 
     public function getAuditLog(Request $request)

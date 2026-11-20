@@ -18,7 +18,8 @@ class OctaneServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        if ($this->app->runningInConsole()) {
+        // The Windows port is served by BaoTa PHP-CGI, not Octane.
+        if (config('windows.enabled') || $this->app->runningInConsole()) {
             return;
         }
         if ($this->app->bound('octane')) {

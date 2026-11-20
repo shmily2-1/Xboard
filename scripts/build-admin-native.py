@@ -51,6 +51,14 @@ def main():
                    'if(!l)return void gE.error(e("form.type.select_error"));if(Object.keys(x.formState.errors).length||!await x.trigger())return;const t=x.getValues()')
     text = replace(text, 'Q.jsx(R3t,{machineId:e.id,open:t,t:i})',
                    'Q.jsx(XBMachineInstall,{machineId:e.id,open:t,t:i})')
+    # Keep the local Cap provider inside the upstream security settings form.
+    # Configuration remains visible while disabled; do not enable CAPTCHA here.
+    text = replace(text, 'o.watch("captcha_enable")&&Q.jsxs(Q.Fragment,{children:[Q.jsx($y,{control:o.control,name:"captcha_type",',
+                   'Q.jsxs(Q.Fragment,{children:[Q.jsx($y,{control:o.control,name:"captcha_type",')
+    text = replace(text, 'Q.jsx(Lzt,{value:"turnstile",children:e("safe.form.captcha.type.options.turnstile")})',
+                   'Q.jsx(Lzt,{value:"turnstile",children:e("safe.form.captcha.type.options.turnstile")}),Q.jsx(Lzt,{value:"cap",children:"Cap（本机自建）"})')
+    text = replace(text, '"recaptcha"===o.watch("captcha_type")&&Q.jsxs(Q.Fragment,',
+                   '"cap"===o.watch("captcha_type")&&Q.jsx(XBCapSettings,{configuration:a?.data?.safe}),"recaptcha"===o.watch("captcha_type")&&Q.jsxs(Q.Fragment,')
     # Append into the same ES module: the original root, router, auth and
     # design-system bindings are reused by the editable source component.
     text += '\n' + (ROOT / 'resources/js/admin-v2bx.js').read_text(encoding='utf-8').rstrip() + '\n'

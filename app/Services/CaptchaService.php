@@ -23,6 +23,7 @@ class CaptchaService
         $captchaType = admin_setting('captcha_type', 'recaptcha');
 
         return match ($captchaType) {
+            'cap' => app(CapService::class)->verify($request->input('cap_token'), $request->ip()),
             'turnstile' => $this->verifyTurnstile($request),
             'recaptcha-v3' => $this->verifyRecaptchaV3($request),
             'recaptcha' => $this->verifyRecaptcha($request),

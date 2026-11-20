@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit bootstrap="../vendor/autoload.php" cacheResult="false" colors="false" failOnWarning="true" failOnRisky="true" failOnDeprecation="true">
+  <testsuites>
+    <testsuite name="V2bX-2 Hysteria2 compatibility (no database)">
+      <file>../tests/Unit/Hysteria2PortHoppingTest.php</file>
+      <file>../tests/Unit/Hysteria2PortHoppingCompatibilityTest.php</file>
+      <file>../tests/Unit/Hysteria2ConfigEndpointTest.php</file>
+    </testsuite>
+  </testsuites>
+</phpunit>

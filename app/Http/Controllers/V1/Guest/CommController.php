@@ -32,6 +32,7 @@ class CommController extends Controller
             'is_recaptcha' => (int) admin_setting('captcha_enable', 0) ? 1 : 0,
         ];
 
+        $data = array_merge($data, app(\App\Services\CapService::class)->publicConfiguration());
         $data = HookManager::filter('guest_comm_config', $data);
 
         return $this->success($data);

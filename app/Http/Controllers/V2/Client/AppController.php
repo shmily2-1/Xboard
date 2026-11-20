@@ -89,6 +89,7 @@ class AppController extends Controller
                 'recaptcha_v3_site_key' => admin_setting('recaptcha_v3_site_key', '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI'), // reCAPTCHA v3 站点密钥
                 'recaptcha_v3_score_threshold' => (float) admin_setting('recaptcha_v3_score_threshold', 0.5), // reCAPTCHA v3 分数阈值
                 'turnstile_site_key' => admin_setting('turnstile_site_key', '0x4AAAAAAAABkMYinukE8nzUg'), // Turnstile 站点密钥
+                ...app(\App\Services\CapService::class)->publicConfiguration(),
             ],
             'payment_config' => [
                 'currency' => admin_setting('currency', 'CNY'), // 货币类型
