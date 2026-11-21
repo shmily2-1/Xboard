@@ -20,7 +20,7 @@ server {
         fastcgi_param SCRIPT_FILENAME D:/wwwroot/dorocloud.net/public/index.php;
         fastcgi_param HTTP_ACCEPT application/json;
         fastcgi_param HTTP_PROXY "";
-        fastcgi_pass 127.0.0.1:20082;
+        fastcgi_pass 127.0.0.1:20085;
         fastcgi_intercept_errors off;
     }
     location / {
